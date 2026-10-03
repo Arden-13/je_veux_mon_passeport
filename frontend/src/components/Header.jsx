@@ -12,9 +12,9 @@ export default function Header() {
     <header className="header">
       <div className="container header-inner">
         <Link to="/" className="brand" aria-label="Passeport Congo, accueil">
-          <span className="logo" aria-hidden="true">PC</span>
+          <span className="logo" aria-hidden="true">Pass</span>
           <span>
-            <strong>Passeport Congo</strong>
+            <strong>Je veux mon passeport</strong>
             <small>Votre passeport, notre engagement</small>
           </span>
         </Link>

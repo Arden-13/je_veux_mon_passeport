@@ -1,0 +1,11 @@
+.stepper ol { list-style: none; margin: 0 0 32px; padding: 0; display: flex; }
+.stepper-item { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.stepper-item a { display: flex; flex-direction: column; align-items: center; gap: 6px; color: inherit; }
+.stepper-item:not(:last-child)::after { content: ''; position: absolute; top: 16px; left: calc(50% + 22px); right: calc(-50% + 22px); height: 2px; background: var(--border); }
+.stepper-done:not(:last-child)::after { background: var(--primary); }
+.stepper-circle { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; border: 2px solid var(--border); background: #fff; font-weight: 700; position: relative; z-index: 1; }
+.stepper-current .stepper-circle, .stepper-done .stepper-circle { background: var(--primary); border-color: var(--primary); color: #fff; }
+.stepper-current { color: var(--text); font-weight: 600; }
+@media (max-width: 640px) {
+  .stepper-todo .stepper-label, .stepper-done .stepper-label { display: none; }
+}
