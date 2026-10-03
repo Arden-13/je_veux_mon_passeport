@@ -18,7 +18,8 @@ Le projet est ainsi conçu autour de la gestion et de la constitution d’un dos
 Cloner le repo, puis installer les dépendances dans chaque dossier séparément :
 
 ```bash
-git clone je_veux_mon_passeport
+git clone https://github.com/Arden-13/je_veux_mon_passeport.git
+
 cd je_veux_mon_passeport
 
 # Backend
