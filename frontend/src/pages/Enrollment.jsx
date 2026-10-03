@@ -2,12 +2,20 @@ import { Navigate, useParams } from 'react-router-dom'
 import { STEPS } from '../utils/constants'
 import Stepper from '../components/Stepper'
 import IdentiteStep from './steps/IdentiteStep'
+import FamilleStep from './steps/FamilleStep'
+import AdresseStep from './steps/AdresseStep'
+import ProfessionStep from './steps/ProfessionStep'
 import DocumentsStep from './steps/DocumentsStep'
+import RecapitulatifStep from './steps/RecapitulatifStep'
 
-// Un composant par étape. Les autres arrivent au fur et à mesure.
+// Un composant par étape du formulaire
 const COMPONENTS = {
   identite: IdentiteStep,
+  famille: FamilleStep,
+  adresse: AdresseStep,
+  profession: ProfessionStep,
   documents: DocumentsStep,
+  recapitulatif: RecapitulatifStep,
 }
 
 export default function Enrollment() {
@@ -19,7 +27,7 @@ export default function Enrollment() {
     <div className="container page">
       <Stepper current={step.id} />
       <h1>{step.label}</h1>
-      {StepComponent ? <StepComponent /> : <p>Étape à construire.</p>}
+      <StepComponent />
     </div>
   )
 }
