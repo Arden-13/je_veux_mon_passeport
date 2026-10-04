@@ -1,5 +1,4 @@
 /**
- * @fileoverview Contrôleur pour la gestion des demandes de passeport (Epic 3).
  * @author Grasty Ghyvet SAMBA DINAULT <grastysamba01@gmail.com>
  * @created 2026-10-04
  */
@@ -25,14 +24,6 @@ export const initializeApplication = async (req, res, next) => {
             lastName, firstName, birthDate, birthPlace,
             gender, nationality, nationalIdNumber,
         } = req.body;
-
-        if (!lastName || !firstName || !birthDate || !birthPlace || !gender || !nationality
-            || !nationalIdNumber) {
-
-            const error = new Error("Champs d'identité obligatoires manquants pour démarrer la demande");
-            error.statusCode = 400;
-            return next(error);
-        }
 
         const newApplication = await Application.createApplication(req.body);
 
@@ -61,11 +52,32 @@ export const saveApplicationStep = async (req, res, next) => {
     try {
         const { id } = req.params;
         const stepData = req.body;
+        const isBodyEmpty = Object.keys(req.body).length === 0;
+        const isFilesEmpty = !req.files || Object.keys(req.files).length === 0;
 
-        if (Object.keys(stepData).length === 0) {
-            const error = new Error("Aucune donnée fournie pour la mise à jour");
-            error.statusCode = 400;
-            next(error);
+        if (isBodyEmpty && isFilesEmpty) {
+            const erreur = new Error("Aucune donnée fournie pour la mise à jour");
+            erreur.statusCode = 400;
+            return next(erreur);
+        }
+
+        if (req.files) {
+            // Plus tard, c'est ici que sera implémenter le service Supabase pour uploader 
+            // le 'buffer' (la mémoire) et récupérer la vraie URL publique.
+            // Pour l'instant, on simule l'enregistrement d'une chaîne de caractères :
+
+            if (req.files['birthCertificateUrl']) {
+                stepData.birthCertificateUrl = "fichier_en_attente_supabase";
+            }
+            if (req.files['nationalIdCardUrl']) {
+                stepData.nationalIdCardUrl = "fichier_en_attente_supabase";
+            }
+            if (req.files['proofOfAddressUrl']) {
+                stepData.proofOfAddressUrl = "fichier_en_attente_supabase";
+            }
+            if (req.files['idPhotoUrl']) {
+                stepData.idPhotoUrl = "fichier_en_attente_supabase";
+            }
         }
 
         if (stepData.isCertified === true) {

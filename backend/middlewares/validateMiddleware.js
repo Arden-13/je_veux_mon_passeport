@@ -1,5 +1,4 @@
 /**
- * @fileoverview Contrôleur pour la gestion des demandes de passeport (Epic 3).
  * @author Grasty Ghyvet SAMBA DINAULT <grastysamba01@gmail.com>
  * @created 2026-10-04
  */
@@ -171,16 +170,14 @@ export const validateProfessionStep = (req, res, next) => {
  * @returns 
  */
 export const validateDocumentsStep = (req, res, next) => {
-    const validation = documentsSchema.safeParse(req.body);
+    const files = req.files;
 
-    if (!validation.success) {
-        const messagesErreurs = validation.error.issues.map(err => err.message).join(', ');
-        const erreur = new Error(`Données de documents invalides : ${messagesErreurs}`);
+    if (!files || !files['birthCertificateUrl'] || !files['nationalIdCardUrl'] || !files['proofOfAddressUrl'] || !files['idPhotoUrl']) {
+        const erreur = new Error("Les 4 documents (Acte de naissance, CNI, Justificatif de domicile et Photo) sont obligatoires.");
         erreur.statusCode = 400;
         return next(erreur);
     }
 
-    req.body = validation.data;
     next();
 };
 
