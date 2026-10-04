@@ -12,7 +12,10 @@
   --max: 1120px;
   font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
 a { color: inherit; text-decoration: none; }

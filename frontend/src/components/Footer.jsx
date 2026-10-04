@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="footer">
       <div className="container footer-grid">
         <div>
-          <h4>Passeport Congo</h4>
+          <h4>Je veux mon passeport</h4>
           <p>Votre passeport, notre engagement.</p>
         </div>
         <div>
@@ -36,7 +36,7 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <div className="container">
-          <span>© 2026 Passeport Congo. Projet pédagogique, non officiel.</span>
+          <span>© 2026 Je veux mon passeport. Projet pédagogique, non officiel.</span>
           <span>Mentions légales | Politique de confidentialité</span>
         </div>
       </div>
