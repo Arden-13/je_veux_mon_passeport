@@ -16,7 +16,7 @@ export default function Header() {
             <img src="/assets/logo.jpg" alt="" />
           </span>
           <span>
-            <strong>Passeport Congo</strong>
+            <strong>Je veux mon passeport</strong>
             <small>Votre passeport, notre engagement</small>
           </span>
         </Link>

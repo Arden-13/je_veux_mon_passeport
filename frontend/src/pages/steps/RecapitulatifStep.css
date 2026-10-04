@@ -1,0 +1,22 @@
+.recap { display: grid; gap: 20px; }
+.recap p { margin: 0; }
+.recap-alert { background: #fef3f2; border: 1px solid #fda29b; border-radius: 10px; padding: 14px 18px; color: #912018; }
+.recap-alert ul { margin: 8px 0 0; padding-left: 20px; }
+.recap-alert a { color: #912018; font-weight: 600; text-decoration: underline; }
+.recap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.recap-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+.recap-card header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.recap-card h2 { margin: 0; font-size: 16px; }
+.recap-card header a { color: var(--primary); font-size: 14px; font-weight: 600; }
+.recap-card dl { margin: 0; display: grid; gap: 8px; }
+.recap-card dl > div { display: flex; gap: 12px; font-size: 14px; }
+.recap-card dt { width: 140px; flex: none; color: var(--muted); }
+.recap-card dd { margin: 0; font-weight: 600; word-break: break-word; }
+.recap-docs { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.recap-ok { color: var(--success); font-weight: 600; }
+.recap-ko { color: #b42318; font-weight: 600; }
+.recap-file { color: var(--muted); font-weight: 400; word-break: break-all; }
+.recap-certify { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+.recap-hint { color: var(--muted); font-size: 14px; }
+.recap button[disabled] { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 720px) { .recap-grid { grid-template-columns: 1fr; } }
