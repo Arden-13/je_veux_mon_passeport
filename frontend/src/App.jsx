@@ -6,7 +6,8 @@ import Home from './pages/Home'
 import Informations from './pages/Informations'
 import Centres from './pages/Centres'
 import Faq from './pages/Faq'
-import Auth from './pages/Auth'
+import Login from './pages/Login'
+import SignUp from './pages/SignUp'
 import RequestType from './pages/RequestType'
 import Enrollment from './pages/Enrollment'
 import Confirmation from './pages/Confirmation'
@@ -25,7 +26,8 @@ export default function App() {
             <Route path="/informations" element={<Informations />} />
             <Route path="/centres" element={<Centres />} />
             <Route path="/faq" element={<Faq />} />
-            <Route path="/inscription" element={<Auth />} />
+            <Route path="/connexion" element={<Login />} />
+            <Route path="/inscription" element={<SignUp />} />
             <Route path="/demande/type" element={<RequestType />} />
             <Route path="/demande/:etape" element={<Enrollment />} />
             <Route path="/confirmation" element={<Confirmation />} />
