@@ -5,7 +5,8 @@
 
 "use strict"
 
-import Application from '../models/Application.js'
+import Application from '../models/Application.js';
+import supabase from '../config/supabaseClient.js'; // Ajout du client Supabase
 
 /**
  * Étapes 1 :
@@ -19,7 +20,6 @@ import Application from '../models/Application.js'
  */
 export const initializeApplication = async (req, res, next) => {
     try {
-        console.log("Données reçues depuis Postman :", req.body);
         const {
             lastName, firstName, birthDate, birthPlace,
             gender, nationality, nationalIdNumber,
@@ -50,7 +50,7 @@ export const initializeApplication = async (req, res, next) => {
  */
 export const saveApplicationStep = async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // C'est ton tracking_number
         const stepData = req.body;
         const isBodyEmpty = Object.keys(req.body).length === 0;
         const isFilesEmpty = !req.files || Object.keys(req.files).length === 0;
@@ -62,26 +62,48 @@ export const saveApplicationStep = async (req, res, next) => {
         }
 
         if (req.files) {
-            // Plus tard, c'est ici que sera implémenter le service Supabase pour uploader 
-            // le 'buffer' (la mémoire) et récupérer la vraie URL publique.
-            // Pour l'instant, on simule l'enregistrement d'une chaîne de caractères :
 
+            // Envoi le buffer garder en mémoire par (Multer) vers Supabase
+            const uploadToSupabase = async (file, folderName) => {
+                const fileExtension = file.originalname.split('.').pop();
+
+                // Stock les fichiers dans un dossier portant le nom du tracking_number 
+                // (identifiant unique généré)
+                const fileName = `${id}/${Date.now()}-${folderName}.${fileExtension}`;
+
+                const { data, error } = await supabase.storage
+                    .from('passport_documents')
+                    .upload(fileName, file.buffer, {
+                        contentType: file.mimetype,
+                        upsert: true
+                    });
+
+                if (error) throw new Error(`Upload échoué pour ${folderName} : ${error.message}`);
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('passport_documents')
+                    .getPublicUrl(fileName);
+
+                return publicUrlData.publicUrl;
+            };
+
+            // Récupération des fichiers : req.files['nomDuChamp'][0] récupère le premier fichier du tableau
             if (req.files['birthCertificateUrl']) {
-                stepData.birthCertificateUrl = "fichier_en_attente_supabase";
+                stepData.birthCertificateUrl = await uploadToSupabase(req.files['birthCertificateUrl'][0], 'birth-certificate');
             }
             if (req.files['nationalIdCardUrl']) {
-                stepData.nationalIdCardUrl = "fichier_en_attente_supabase";
+                stepData.nationalIdCardUrl = await uploadToSupabase(req.files['nationalIdCardUrl'][0], 'national-id');
             }
             if (req.files['proofOfAddressUrl']) {
-                stepData.proofOfAddressUrl = "fichier_en_attente_supabase";
+                stepData.proofOfAddressUrl = await uploadToSupabase(req.files['proofOfAddressUrl'][0], 'proof-of-address');
             }
             if (req.files['idPhotoUrl']) {
-                stepData.idPhotoUrl = "fichier_en_attente_supabase";
+                stepData.idPhotoUrl = await uploadToSupabase(req.files['idPhotoUrl'][0], 'id-photo');
             }
         }
 
-        if (stepData.isCertified === true) {
-            stepData.status = "submitted"
+        if (stepData.isCertified === true || stepData.isCertified === 'true') {
+            stepData.status = "submitted";
         }
 
         const updatedApplication = await Application.updateApplicationStep(id, stepData);
