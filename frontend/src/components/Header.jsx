@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { supabase } from '../supabaseClient'
 
 const links = [
   ['/', 'Accueil'],
@@ -10,8 +12,28 @@ const links = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [authError, setAuthError] = useState('')
+  const { user, loading } = useAuth()
+  const navigate = useNavigate()
 
   const closeMenu = () => setMenuOpen(false)
+
+  const handleSignOut = async () => {
+    setAuthError('')
+
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        setAuthError('La déconnexion a échoué. Réessaie.')
+        return
+      }
+
+      closeMenu()
+      navigate('/connexion', { replace: true })
+    } catch {
+      setAuthError('La déconnexion a échoué. Réessaie.')
+    }
+  }
 
   return (
     <header className="header">
@@ -51,6 +73,12 @@ export default function Header() {
               {label}
             </NavLink>
           ))}
+          {!loading && user && (
+            <button type="button" className="nav-signout" onClick={handleSignOut}>
+              Se déconnecter
+            </button>
+          )}
+          {authError && <span className="nav-auth-error" role="alert">{authError}</span>}
           <span className="lang"><span className="on">FR</span> | EN</span>
         </nav>
       </div>

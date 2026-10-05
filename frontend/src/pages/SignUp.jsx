@@ -1,14 +1,18 @@
 import './authForms.css'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
+import { supabase } from '../supabaseClient'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function SignUp() {
-  const navigate = useNavigate()
   const [form, setForm] = useState({ fullName: '', email: '', password: '', terms: false })
   const [errors, setErrors] = useState({})
+  
+  const [formError, setFormError] = useState('')
+  const [confirmationSent, setConfirmationSent] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -50,23 +54,55 @@ export default function SignUp() {
     return nextErrors
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = async (e) => {
+  e.preventDefault()
+  setFormError('')
 
-    const nextErrors = validateForm()
-    setErrors(nextErrors)
+  const nextErrors = validateForm()
+  setErrors(nextErrors)
 
-    if (Object.keys(nextErrors).length > 0) return
+  if (Object.keys(nextErrors).length > 0) return
 
-    // TODO: appel API d'inscription quand le backend sera prêt
-    navigate('/demande/type')
+  setIsSubmitting(true)
+
+  try {
+    const { error } = await supabase.auth.signUp({
+      email: form.email.trim(),
+      password: form.password,
+      options: {
+      emailRedirectTo: `${window.location.origin}/email-confirme`,
+      data: {
+        full_name: form.fullName.trim(),
+      },
+    },
+    })
+
+    if (error) {
+      setFormError(error.message)
+      return
+    }
+
+    setConfirmationSent(true)
+  } catch {
+    setFormError('Impossible de contacter le service. Réessaie.')
+  } finally {
+    setIsSubmitting(false)
   }
+}
 
   return (
     <div className="container page auth-page">
       <form className="auth-card" onSubmit={handleSubmit} noValidate>
         <h1>Créer un compte</h1>
         <p>Accédez à votre espace personnel pour suivre votre demande.</p>
+
+        {formError && <p role="alert" className="field-error">{formError}</p>}
+
+        {confirmationSent && (
+          <p role="status">
+            Compte créé. Vérifie ta boîte mail pour confirmer ton adresse.
+          </p>
+        )}
 
         <label htmlFor="fullName">Nom complet *</label>
         <input
@@ -114,7 +150,12 @@ export default function SignUp() {
         </label>
         {errors.terms && <span className="field-error" role="alert">{errors.terms}</span>}
 
-        <button type="submit" className="btn btn-primary">S'inscrire</button>
+        <button
+            type="submit"
+            className="btn btn-primary"
+            disabled={isSubmitting || confirmationSent}>
+            {isSubmitting ? 'Inscription en cours…' : 'S’inscrire'}
+        </button>
 
         <p className="auth-switch">
           Déjà un compte ? <Link to="/connexion">Se connecter</Link>

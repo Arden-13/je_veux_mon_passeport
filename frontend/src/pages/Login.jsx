@@ -2,30 +2,25 @@ import './authForms.css'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import PasswordInput from '../components/PasswordInput'
+import { supabase } from '../supabaseClient'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function Login() {
   const navigate = useNavigate()
-  const [identifier, setIdentifier] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState({})
+  const [formError, setFormError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validateForm = () => {
     const nextErrors = {}
-    const trimmedIdentifier = identifier.trim()
 
-    if (!trimmedIdentifier) {
-      nextErrors.identifier = 'Veuillez saisir votre email ou votre numéro de téléphone.'
-    } else if (trimmedIdentifier.includes('@')) {
-      if (!emailPattern.test(trimmedIdentifier)) {
-        nextErrors.identifier = 'L’adresse e-mail n’est pas valide.'
-      }
-    } else {
-      const cleanedPhone = trimmedIdentifier.replace(/\s+/g, '')
-      if (!/^\d{8,15}$/.test(cleanedPhone)) {
-        nextErrors.identifier = 'Le numéro de téléphone doit contenir entre 8 et 15 chiffres.'
-      }
+    if (!email.trim()) {
+      nextErrors.email = 'L’adresse e-mail est obligatoire.'
+    } else if (!emailPattern.test(email.trim())) {
+      nextErrors.email = 'L’adresse e-mail n’est pas valide.'
     }
 
     if (!password) {
@@ -37,16 +32,39 @@ export default function Login() {
     return nextErrors
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    setFormError('')
 
     const nextErrors = validateForm()
     setErrors(nextErrors)
 
     if (Object.keys(nextErrors).length > 0) return
 
-    // TODO: appel API de connexion quand le backend sera prêt
-    navigate('/demande/type')
+    setIsSubmitting(true)
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
+
+      if (error) {
+        setFormError(error.message)
+        return
+      }
+
+      if (!data.session) {
+        setFormError('Aucune session reçue. Vérifie ton adresse e-mail.')
+        return
+      }
+
+      navigate('/demande/type')
+    } catch {
+      setFormError('Impossible de contacter le service. Réessaie.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -55,24 +73,33 @@ export default function Login() {
         <h1>Se connecter</h1>
         <p>Bienvenue ! Connectez-vous à votre espace.</p>
 
-        <label htmlFor="identifier">Email ou numéro de téléphone *</label>
+        {formError && (
+          <p role="alert" className="field-error">{formError}</p>
+        )}
+
+        <label htmlFor="email">Email *</label>
         <input
-          id="identifier"
-          name="identifier"
-          value={identifier}
+          id="email"
+          name="email"
+          type="email"
+          value={email}
           onChange={(e) => {
-            setIdentifier(e.target.value)
-            if (errors.identifier) {
-              setErrors((prev) => ({ ...prev, identifier: '' }))
+            setEmail(e.target.value)
+            if (errors.email) {
+              setErrors((prev) => ({ ...prev, email: '' }))
             }
           }}
           placeholder="Ex. : jean@exemple.com"
           required
-          className={errors.identifier ? 'input-error' : ''}
-          aria-invalid={!!errors.identifier}
-          aria-describedby={errors.identifier ? 'identifier-error' : undefined}
+          className={errors.email ? 'input-error' : ''}
+          aria-invalid={!!errors.email}
+          aria-describedby={errors.email ? 'email-error' : undefined}
         />
-        {errors.identifier && <span id="identifier-error" className="field-error" role="alert">{errors.identifier}</span>}
+        {errors.email && (
+          <span id="email-error" className="field-error" role="alert">
+            {errors.email}
+          </span>
+        )}
 
         <label htmlFor="password">Mot de passe *</label>
         <PasswordInput
@@ -88,9 +115,19 @@ export default function Login() {
           placeholder="Votre mot de passe"
           error={errors.password}
         />
-        {errors.password && <span id="password-error" className="field-error" role="alert">{errors.password}</span>}
+        {errors.password && (
+          <span id="password-error" className="field-error" role="alert">
+            {errors.password}
+          </span>
+        )}
 
-        <button type="submit" className="btn btn-primary">Se connecter</button>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Connexion en cours…' : 'Se connecter'}
+        </button>
 
         <p className="auth-switch">
           Pas encore de compte ? <Link to="/inscription">Créer un compte</Link>

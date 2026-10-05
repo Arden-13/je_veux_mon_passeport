@@ -37,6 +37,9 @@ main { flex: 1; }
 .nav a { padding: 6px 0; border-bottom: 2px solid transparent; color: var(--muted); }
 .nav a:hover { color: var(--primary); }
 .nav a.active { color: var(--primary); border-color: var(--primary); font-weight: 600; }
+.nav-signout { padding: 6px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted); font: inherit; cursor: pointer; }
+.nav-signout:hover { color: var(--primary); }
+.nav-auth-error { color: #b42318; font-size: 13px; }
 .lang { font-size: 14px; color: var(--muted); }
 .lang .on { color: var(--primary); font-weight: 700; }
 
@@ -110,6 +113,7 @@ main { flex: 1; }
   }
   .nav.open { display: flex; }
   .nav a { width: 100%; padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .nav-signout { width: 100%; padding: 8px 0; border-bottom: 1px solid var(--border); text-align: left; }
   .lang { margin-top: 4px; }
 
   .hero-inner { grid-template-columns: 1fr; padding-top: 48px; padding-bottom: 48px; }
