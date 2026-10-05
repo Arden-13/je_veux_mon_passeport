@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom'
-import { STEPS } from '../utils/constants'
+import useDemande from '../hooks/useDemande'
 import './Stepper.css'
 
-// Barre d'étapes du formulaire (écrans 4, 5 et 6 de la maquette)
+// Barre d'étapes du formulaire : les étapes affichées dépendent du type de demande
 export default function Stepper({ current }) {
-  const currentIndex = STEPS.findIndex((s) => s.id === current)
+  const { steps } = useDemande()
+  const currentIndex = steps.findIndex((s) => s.id === current)
   return (
     <nav className="stepper" aria-label="Étapes de la demande">
       <ol>
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const state = i < currentIndex ? 'done' : i === currentIndex ? 'current' : 'todo'
           const content = (
             <>

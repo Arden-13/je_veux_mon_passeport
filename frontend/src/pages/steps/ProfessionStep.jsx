@@ -4,11 +4,10 @@ import useStepForm from '../../hooks/useStepForm'
 
 export default function ProfessionStep() {
   // Étape facultative : aucun champ obligatoire
-  const { errors, field, onSubmit } = useStepForm({
+  const { errors, field, onSubmit, previousPath } = useStepForm({
     step: 'profession',
     initial: { profession: '', employeur: '' },
     validate: () => ({}),
-    next: '/demande/documents',
   })
 
   return (
@@ -23,7 +22,7 @@ export default function ProfessionStep() {
         </FormField>
       </div>
       <div className="step-nav">
-        <Link to="/demande/adresse" className="step-back">← Précédent</Link>
+        <Link to={previousPath} className="step-back">← Précédent</Link>
         <button type="submit" className="btn btn-primary">Suivant →</button>
       </div>
     </form>
