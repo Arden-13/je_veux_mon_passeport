@@ -18,11 +18,10 @@ function validate(v) {
 }
 
 export default function AdresseStep() {
-  const { errors, field, onSubmit } = useStepForm({
+  const { errors, field, onSubmit, previousPath } = useStepForm({
     step: 'adresse',
     initial: { rue: '', ville: '', pays: 'Congo', telephone: '', email: '' },
     validate,
-    next: '/demande/profession',
   })
 
   return (
@@ -46,7 +45,7 @@ export default function AdresseStep() {
         </FormField>
       </div>
       <div className="step-nav">
-        <Link to="/demande/famille" className="step-back">← Précédent</Link>
+        <Link to={previousPath} className="step-back">← Précédent</Link>
         <button type="submit" className="btn btn-primary">Suivant →</button>
       </div>
     </form>
