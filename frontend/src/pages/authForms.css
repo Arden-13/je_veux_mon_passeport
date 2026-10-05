@@ -25,6 +25,17 @@
   font-family: inherit;
 }
 .auth-card input:focus { border-color: var(--primary); }
+.auth-card .input-error,
+.auth-card input.input-error {
+  border-color: #c62828;
+  background: #fff7f7;
+}
+.field-error {
+  display: block;
+  margin-top: 6px;
+  color: #c62828;
+  font-size: 13px;
+}
 
 .auth-password { position: relative; }
 .auth-eye {
@@ -40,6 +51,7 @@
 .auth-eye img { display: block; width: 20px; height: 20px; object-fit: contain; }
 
 .auth-terms { display: flex; gap: 8px; align-items: flex-start; font-weight: 400 !important; }
+.auth-terms.input-error { color: #c62828; }
 .auth-error { color: #c62828; font-size: 14px; margin: 12px 0 0; }
 
 .auth-card button.btn {

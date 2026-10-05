@@ -1,18 +1,22 @@
 import '../pages/authForms.css'
 import { useState } from 'react'
 
-export default function PasswordInput({ id, value, onChange, placeholder }) {
+export default function PasswordInput({ id, name, value, onChange, placeholder, error }) {
   const [visible, setVisible] = useState(false)
 
   return (
     <div className="auth-password">
       <input
         id={id}
+        name={name}
         type={visible ? 'text' : 'password'}
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         required
+        className={error ? 'input-error' : ''}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : undefined}
       />
       <button
         type="button"
