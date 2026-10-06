@@ -54,46 +54,45 @@ class Application {
      * @param {Object} identityData - Les données d'identité envoyées par le contrôleur
      * @returns {Object} Le dossier créé dans Supabase
      */
-    static async createApplication(identityData) {
-        try {
-            // Génération du numéro de suivi avec crypto (ex: APP-2026-8A3B9F)
-            const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
-            const trackingNumber = `APP-${new Date().getFullYear()}-${randomHex}`;
+    static async createApplication(identityData, userId) {
+    try {
+        const randomHex = crypto.randomBytes(3).toString('hex').toUpperCase();
+        const trackingNumber = `APP-${new Date().getFullYear()}-${randomHex}`;
 
-            // Conversion du format de date en anglais pour qu'elle soit accepté par PostgreSQL
-            const [day, month, year] = identityData.birthDate.split('/');
-            const formattedBirthDate = `${year}-${month}-${day}`;
+        const [day, month, year] = identityData.birthDate.split('/');
+        const formattedBirthDate = `${year}-${month}-${day}`;
 
-            const dbPayload = {
-                tracking_number: trackingNumber,
-                status: 'draft',
-                last_name: identityData.lastName,
-                first_name: identityData.firstName,
-                birth_date: formattedBirthDate,
-                birth_place: identityData.birthPlace,
-                gender: identityData.gender,
-                nationality: identityData.nationality,
-                national_id_number: identityData.nationalIdNumber
-            };
+        const dbPayload = {
+            tracking_number: trackingNumber,
+            status: 'draft',
+            user_id: userId,
+            last_name: identityData.lastName,
+            first_name: identityData.firstName,
+            birth_date: formattedBirthDate,
+            birth_place: identityData.birthPlace,
+            gender: identityData.gender,
+            nationality: identityData.nationality,
+            national_id_number: identityData.nationalIdNumber
+        };
 
-            const { data, error } = await supabase
-                .from('applications')
-                .insert([dbPayload])
-                .select()
-                .single();
+        const { data, error } = await supabase
+            .from('applications')
+            .insert([dbPayload])
+            .select()
+            .single();
 
-            if (error) {
-                const err = new Error(`Erreur Supabase: ${error.message}`);
-                err.code = error.code;
-                throw err;
-            }
-
-            return data;
-        } catch (error) {
-            console.error("Erreur dans createApplication :", error);
-            throw error;
+        if (error) {
+            const err = new Error(`Erreur Supabase: ${error.message}`);
+            err.code = error.code;
+            throw err;
         }
+
+        return data;
+    } catch (error) {
+        console.error("Erreur dans createApplication :", error);
+        throw error;
     }
+}
 
     /**
      * Met à jour une étape spécifique du dossier
@@ -101,58 +100,70 @@ class Application {
      * @param {Object} stepData - Les données de l'étape à mettre à jour
      * @returns {Object} Le dossier mis à jour
      */
-    static async updateApplicationStep(trackingNumber, stepData) {
-        try {
-            // Dictionnaire de traduction dynamique pour traduire n'importe quelle champ
-            const mapToDB = {
-                // Etape 2
-                fatherFullName: 'father_name',
-                motherFullName: 'mother_name',
-                // Etape 3
-                residenceAddress: 'address',
-                city: 'city',
-                phoneNumber: 'phone_number',
-                // Etape 4
-                profession: 'profession',
-                employer: 'employer_name',
-                // Etape 5
-                birthCertificateUrl: 'birth_certificate_url',
-                nationalIdCardUrl: 'national_id_card_url',
-                proofOfAddressUrl: 'proof_of_address_url',
-                idPhotoUrl: 'id_photo_url',
-                // Etape 6
-                isCertified: 'is_certified',
-                status: 'status'
-            };
+    static async updateApplicationStep(trackingNumber, stepData, userId) {
+    try {
+        // Vérification d'appartenance AVANT toute modification
+        const { data: existing, error: fetchError } = await supabase
+            .from('applications')
+            .select('user_id')
+            .eq('tracking_number', trackingNumber)
+            .single();
 
-            const dbPayload = {};
-
-            for (const [jsKey, value] of Object.entries(stepData)) {
-                const dbKey = mapToDB[jsKey];
-                if (dbKey) {
-                    dbPayload[dbKey] = value;
-                }
-            }
-
-            const { data, error } = await supabase
-                .from('applications')
-                .update(dbPayload)
-                .eq('tracking_number', trackingNumber) // La condition WHERE
-                .select()
-                .single();
-
-            if (error) {
-                const err = new Error(`Erreur Supabase lors de la mise à jour: ${error.message}`);
-                err.code = error.code;
-                throw err;
-            }
-
-            return data;
-        } catch (error) {
-            console.error("Erreur dans updateApplicationStep :", error);
-            throw error;
+        if (fetchError || !existing) {
+            const err = new Error("Dossier introuvable");
+            err.statusCode = 404;
+            throw err;
         }
+
+        if (existing.user_id !== userId) {
+            const err = new Error("Vous n'êtes pas autorisé à modifier ce dossier");
+            err.statusCode = 403;
+            throw err;
+        }
+
+        const mapToDB = {
+            fatherFullName: 'father_name',
+            motherFullName: 'mother_name',
+            residenceAddress: 'address',
+            city: 'city',
+            phoneNumber: 'phone_number',
+            profession: 'profession',
+            employer: 'employer_name',
+            birthCertificateUrl: 'birth_certificate_url',
+            nationalIdCardUrl: 'national_id_card_url',
+            proofOfAddressUrl: 'proof_of_address_url',
+            idPhotoUrl: 'id_photo_url',
+            isCertified: 'is_certified',
+            status: 'status'
+        };
+
+        const dbPayload = {};
+        for (const [jsKey, value] of Object.entries(stepData)) {
+            const dbKey = mapToDB[jsKey];
+            if (dbKey) {
+                dbPayload[dbKey] = value;
+            }
+        }
+
+        const { data, error } = await supabase
+            .from('applications')
+            .update(dbPayload)
+            .eq('tracking_number', trackingNumber)
+            .select()
+            .single();
+
+        if (error) {
+            const err = new Error(`Erreur Supabase lors de la mise à jour: ${error.message}`);
+            err.code = error.code;
+            throw err;
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Erreur dans updateApplicationStep :", error);
+        throw error;
     }
+}
 }
 
 export default Application;
