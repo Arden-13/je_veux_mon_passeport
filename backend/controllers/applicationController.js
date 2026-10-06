@@ -25,7 +25,7 @@ export const initializeApplication = async (req, res, next) => {
             gender, nationality, nationalIdNumber,
         } = req.body;
 
-        const newApplication = await Application.createApplication(req.body);
+        const newApplication = await Application.createApplication(req.body, req.user.id);
 
         res.status(201).json({
             success: true,
@@ -106,7 +106,7 @@ export const saveApplicationStep = async (req, res, next) => {
             stepData.status = "submitted";
         }
 
-        const updatedApplication = await Application.updateApplicationStep(id, stepData);
+        const updatedApplication = await Application.updateApplicationStep(id, stepData, req.user.id);
 
         res.status(200).json({
             success: true,
