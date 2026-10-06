@@ -1,37 +1,87 @@
 import { useState } from "react";
 
-const steps = [
-    {
-        title: "Demande enregistrée",
-        description: "Votre demande a bien été reçue."
-    },
-    {
-        title: "Vérification des documents",
-        description: "Vos documents sont en cours de vérification."
-    },
-    {
-        title: "Contrôle administratif",
-        description: "Votre dossier sera vérifié par l'administration."
-    },
-    {
-        title: "Traitement et impression",
-        description: "Votre passeport est en cours de préparation."
-    },
-    {
-        title: "Retrait du passeport",
-        description: "Votre passeport est disponible."
-    }
-];
+const trackingSteps = {
+    adulte: [
+        {
+            title: "Demande enregistrée",
+            description: "Votre demande a bien été reçue."
+        },
+        {
+            title: "Vérification des documents",
+            description: "Vos documents sont en cours de vérification."
+        },
+        {
+            title: "Contrôle administratif",
+            description: "Votre dossier est en cours de contrôle."
+        },
+        {
+            title: "Traitement et impression",
+            description: "Votre passeport est en cours de préparation."
+        },
+        {
+            title: "Retrait du passeport",
+            description: "Votre passeport est disponible."
+        }
+    ],
+
+    mineur: [
+        {
+            title: "Demande enregistrée",
+            description: "La demande du mineur a bien été reçue."
+        },
+        {
+            title: "Vérification des documents",
+            description: "Les documents du mineur et du représentant légal sont vérifiés."
+        },
+        {
+            title: "Contrôle administratif",
+            description: "Le dossier est en cours de contrôle."
+        },
+        {
+            title: "Traitement et impression",
+            description: "Le passeport du mineur est en préparation."
+        },
+        {
+            title: "Retrait du passeport",
+            description: "Le passeport est disponible."
+        }
+    ],
+
+    renouvellement: [
+        {
+            title: "Demande enregistrée",
+            description: "Votre demande de renouvellement a bien été reçue."
+        },
+        {
+            title: "Vérification des documents",
+            description: "Les documents nécessaires au renouvellement sont vérifiés."
+        },
+        {
+            title: "Ancien passeport vérifié",
+            description: "Les informations de votre ancien passeport sont contrôlées."
+        },
+        {
+            title: "Traitement et impression",
+            description: "Votre nouveau passeport est en cours de préparation."
+        },
+        {
+            title: "Retrait du passeport",
+            description: "Votre nouveau passeport est disponible."
+        }
+    ]
+};
 
 const dossier = {
-    numero: "PC-2026-000458",
+   numero: "PC-2026-000458",
     date: "02 octobre 2026",
     type: "Passeport biométrique pour adulte",
-    statut: "En cours de vérification"
+    typeDemande: "adulte",
+    statut: "En cours de vérification",
 };
 
 export default function Tracking() {
 
+const steps = trackingSteps[dossier.typeDemande];
 const [currentStep, setCurrentStep] = useState(1);
 
 dossier.numero
