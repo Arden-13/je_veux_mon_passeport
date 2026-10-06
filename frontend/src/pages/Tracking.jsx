@@ -72,10 +72,14 @@ const trackingSteps = {
 };
 
 const dossier = {
-   numero: "PC-2026-000458",
+    numero: "PC-2026-000458",
     date: "02 octobre 2026",
-    type: "Passeport biométrique pour adulte",
-    typeDemande: "adulte",
+    typeDemande: typeDemande,
+    type: typeDemande === "adulte"
+        ? "Passeport biométrique pour adulte"
+        : typeDemande === "mineur"
+            ? "Passeport biométrique pour mineur"
+            : "Renouvellement de passeport",
     statut: "En cours de vérification",
 };
 
