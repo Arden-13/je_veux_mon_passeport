@@ -1,9 +1,18 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEnrollment } from '../../context/EnrollmentContext'
+import { useAuth } from '../../context/AuthContext'
 import useDemande from '../../hooks/useDemande'
+import { api } from '../../services/api'
 import { validateFile } from '../../utils/validators'
 import './DocumentsStep.css'
+
+const API_DOCUMENT_FIELDS = {
+  acteNaissance: 'birthCertificateUrl',
+  cni: 'nationalIdCardUrl',
+  justificatifDomicile: 'proofOfAddressUrl',
+  photo: 'idPhotoUrl',
+}
 
 function formatSize(bytes) {
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} Ko`
@@ -12,9 +21,13 @@ function formatSize(bytes) {
 
 export default function DocumentsStep() {
   const { data, update } = useEnrollment()
+  const { token } = useAuth()
+  const navigate = useNavigate()
   // La liste des pièces dépend du type de demande
-  const { documents: required, previousPath, nextPath } = useDemande()
+  const { type, documents: required, previousPath, nextPath } = useDemande()
   const [errors, setErrors] = useState({})
+  const [submitError, setSubmitError] = useState('')
+  const [saving, setSaving] = useState(false)
   const documents = data.documents || {}
 
   function handleChange(key, event) {
@@ -29,6 +42,43 @@ export default function DocumentsStep() {
   function handleRemove(key) {
     update('documents', { [key]: null })
     setErrors((e) => ({ ...e, [key]: null }))
+  }
+
+  async function handleSubmit() {
+    const missing = required.find(({ key }) => !documents[key]?.file)
+    if (missing) {
+      setSubmitError(`Ajoutez le document requis : ${missing.title}.`)
+      return
+    }
+
+    if (type !== 'adulte') {
+      setSubmitError("Le backend actuel accepte uniquement les quatre documents du parcours adulte.")
+      return
+    }
+
+    const trackingNumber = data.application?.trackingNumber
+    if (!token || !trackingNumber) {
+      setSubmitError('Session ou numéro de dossier manquant. Reprenez la création du dossier.')
+      return
+    }
+
+    const body = new FormData()
+    required.forEach(({ key }) => body.append(API_DOCUMENT_FIELDS[key], documents[key].file))
+
+    try {
+      setSaving(true)
+      setSubmitError('')
+      await api(`/applications/${encodeURIComponent(trackingNumber)}/documents`, {
+        method: 'PATCH',
+        token,
+        body,
+      })
+      navigate(nextPath('documents'))
+    } catch (error) {
+      setSubmitError(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -72,9 +122,12 @@ export default function DocumentsStep() {
       <p className="docs-tip">
         <strong>Conseil :</strong> assurez-vous que vos documents sont lisibles et bien orientés.
       </p>
+      {submitError && <p role="alert">{submitError}</p>}
       <div className="docs-nav">
         <Link to={previousPath('documents')} className="docs-back">← Précédent</Link>
-        <Link to={nextPath('documents')} className="btn btn-primary">Suivant →</Link>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
+          {saving ? 'Envoi...' : 'Suivant →'}
+        </button>
       </div>
     </div>
   )

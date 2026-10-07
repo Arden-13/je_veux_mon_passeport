@@ -1,7 +1,11 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import FormField from '../../components/FormField'
 import useStepForm from '../../hooks/useStepForm'
 import useDemande from '../../hooks/useDemande'
+import { useEnrollment } from '../../context/EnrollmentContext'
+import { useAuth } from '../../context/AuthContext'
+import { api } from '../../services/api'
 
 const SITUATIONS = ['Célibataire', 'Marié(e)', 'Divorcé(e)']
 const NOMBRES = Array.from({ length: 10 }, (_, i) => String(i + 1))
@@ -20,9 +24,13 @@ function validate(v, rules) {
 }
 
 export default function FamilleStep() {
-  const { config } = useDemande()
+  const { config, nextPath } = useDemande()
+  const { data, update } = useEnrollment()
+  const { token } = useAuth()
+  const navigate = useNavigate()
+  const [submitError, setSubmitError] = useState('')
   const rules = config.famille
-  const { values, setValues, errors, field, onChange, onSubmit, previousPath } = useStepForm({
+  const { values, setValues, errors, field, onChange, setErrors, previousPath } = useStepForm({
     step: 'famille',
     initial: { nomPere: '', nomMere: '', situationMatrimoniale: '', aEnfants: '', nombreEnfants: '', consentementParents: '' },
     validate: (v) => validate(v, rules),
@@ -34,13 +42,50 @@ export default function FamilleStep() {
     if (e.target.value === 'Non') setValues((v) => ({ ...v, nombreEnfants: '' }))
   }
 
+  async function handleSubmit(e) {
+    e.preventDefault()
+
+    const found = validate(values, rules)
+    setErrors(found)
+
+    const firstError = Object.keys(found)[0]
+    if (firstError) {
+      document.getElementById(firstError)?.focus()
+      return
+    }
+
+    const trackingNumber = data.application?.trackingNumber
+    if (!token || !trackingNumber) {
+      setSubmitError('Session ou numéro de dossier manquant. Reprenez la création du dossier.')
+      return
+    }
+
+    try {
+      setSubmitError('')
+      await api(`/applications/${encodeURIComponent(trackingNumber)}/family`, {
+        method: 'PATCH',
+        token,
+        body: {
+          fatherFullName: values.nomPere.trim(),
+          motherFullName: values.nomMere.trim(),
+        },
+      })
+
+      update('famille', values)
+      navigate(nextPath('famille'))
+    } catch (error) {
+      setSubmitError(error.message)
+    }
+  }
+
   return (
-    <form className="step-form" onSubmit={onSubmit} noValidate>
+    <form className="step-form" onSubmit={handleSubmit} noValidate>
       <p>
         {rules.consentement
           ? "Indiquez le nom des parents de l'enfant, comme sur son acte de naissance."
           : 'Indiquez le nom de vos parents, comme sur votre acte de naissance, puis votre situation familiale.'}
       </p>
+      {submitError && <p role="alert">{submitError}</p>}
       <div className="field-grid">
         <FormField id="nomPere" label="Nom et prénoms du père" required error={errors.nomPere}>
           <input {...field('nomPere')} autoComplete="off" />
