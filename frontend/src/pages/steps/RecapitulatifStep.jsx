@@ -1,51 +1,104 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useEnrollment } from '../../context/EnrollmentContext'
-import { DOCUMENT_LABELS, getMissing } from '../../utils/dossier'
+import { useAuth } from '../../context/AuthContext'
+import useDemande from '../../hooks/useDemande'
+import { getMissing } from '../../utils/dossier'
+import { api } from '../../services/api'
 import './RecapitulatifStep.css'
 
+// Les lignes affichées dépendent du type de demande
 const SECTIONS = [
   {
     step: 'identite',
     title: 'Informations personnelles',
-    rows: [
+    rows: (c) => [
       ['Nom', 'nom'],
       ['Prénoms', 'prenoms'],
       ['Date de naissance', 'dateNaissance'],
       ['Lieu de naissance', 'lieuNaissance'],
       ['Sexe', 'sexe'],
       ['Nationalité', 'nationalite'],
-      ["Carte d'identité", 'numeroCni'],
+      ...(c.identite.cni ? [["Carte d'identité", 'numeroCni']] : []),
+      ...(c.identite.passeportActuel
+        ? [['Passeport actuel', 'numeroPasseport'], ["Date d'expiration", 'dateExpirationPasseport']]
+        : []),
     ],
   },
-  { step: 'famille', title: 'Famille', rows: [['Père', 'nomPere'], ['Mère', 'nomMere']] },
+  {
+    step: 'famille',
+    title: 'Famille',
+    rows: (c) => [
+      ['Père', 'nomPere'],
+      ['Mère', 'nomMere'],
+      ...(c.famille.situation ? [['Situation matrimoniale', 'situationMatrimoniale']] : []),
+      ...(c.famille.enfants ? [['Enfants', 'aEnfants']] : []),
+      ...(c.famille.consentement ? [['Consentement des parents', 'consentementParents']] : []),
+    ],
+  },
   {
     step: 'adresse',
     title: 'Adresse et contact',
-    rows: [['Adresse', 'rue'], ['Ville', 'ville'], ['Pays', 'pays'], ['Téléphone', 'telephone'], ['E-mail', 'email']],
+    rows: () => [['Adresse', 'rue'], ['Ville', 'ville'], ['Pays', 'pays'], ['Téléphone', 'telephone'], ['E-mail', 'email']],
   },
-  { step: 'profession', title: 'Profession', rows: [['Profession', 'profession'], ['Employeur', 'employeur']] },
+  { step: 'profession', title: 'Profession', rows: () => [['Profession', 'profession'], ['Employeur', 'employeur']] },
 ]
 
 const formatDate = (iso) => (iso ? iso.split('-').reverse().join('/') : '')
 
+// Valeur affichée pour une ligne du récapitulatif
+function displayValue(key, raw, sectionData) {
+  if (key === 'dateNaissance' || key === 'dateExpirationPasseport') return formatDate(raw)
+  if (key === 'aEnfants' && raw === 'Oui') return `Oui (${sectionData?.nombreEnfants || '?'})`
+  return raw
+}
+
 export default function RecapitulatifStep() {
-  const { data } = useEnrollment()
+  const { data, update } = useEnrollment()
+  const { token } = useAuth()
   const navigate = useNavigate()
+  const { config, steps, documents, previousPath } = useDemande()
   const [certified, setCertified] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const missing = getMissing(data)
   const canSubmit = missing.length === 0 && certified
+  const sections = SECTIONS.filter((s) => steps.some((st) => st.id === s.step))
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    // TODO (tâche T15) : envoyer le dossier à l'API et récupérer la référence
-    navigate('/confirmation')
+
+    const trackingNumber = data.application?.trackingNumber
+    if (!token || !trackingNumber) {
+      setSubmitError('Session ou numéro de dossier manquant. Reprenez la création du dossier.')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      setSubmitError('')
+      await api(`/applications/${encodeURIComponent(trackingNumber)}/submit`, {
+        method: 'PATCH',
+        token,
+        body: { isCertified: true },
+      })
+      update('application', { status: 'submitted' })
+      navigate('/confirmation')
+    } catch (error) {
+      setSubmitError(error.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <form className="recap" onSubmit={submit}>
+      <p>
+        Type de demande : <strong>{config.label}</strong> <Link to="/demande/type">Modifier</Link>
+      </p>
       <p>Vérifiez vos informations avant de valider.</p>
+      {submitError && <p role="alert">{submitError}</p>}
 
       {missing.length > 0 && (
         <div className="recap-alert" role="alert">
@@ -61,16 +114,15 @@ export default function RecapitulatifStep() {
       )}
 
       <div className="recap-grid">
-        {SECTIONS.map((s) => (
+        {sections.map((s) => (
           <section className="recap-card" key={s.step}>
             <header>
               <h2>{s.title}</h2>
               <Link to={`/demande/${s.step}`}>Modifier</Link>
             </header>
             <dl>
-              {s.rows.map(([label, key]) => {
-                const raw = data[s.step]?.[key]
-                const value = key === 'dateNaissance' ? formatDate(raw) : raw
+              {s.rows(config).map(([label, key]) => {
+                const value = displayValue(key, data[s.step]?.[key], data[s.step])
                 return (
                   <div key={key}>
                     <dt>{label}</dt>
@@ -87,11 +139,11 @@ export default function RecapitulatifStep() {
             <Link to="/demande/documents">Modifier</Link>
           </header>
           <ul className="recap-docs">
-            {Object.entries(DOCUMENT_LABELS).map(([key, label]) => {
-              const doc = data.documents?.[key]
+            {documents.map((d) => {
+              const doc = data.documents?.[d.key]
               return (
-                <li key={key} className={doc ? 'recap-ok' : 'recap-ko'}>
-                  {doc ? '✓' : '✗'} {label}
+                <li key={d.key} className={doc ? 'recap-ok' : 'recap-ko'}>
+                  {doc ? '✓' : '✗'} {d.title}
                   {doc && <span className="recap-file"> ({doc.name})</span>}
                 </li>
               )
@@ -111,9 +163,9 @@ export default function RecapitulatifStep() {
       )}
 
       <div className="step-nav">
-        <Link to="/demande/documents" className="step-back">← Précédent</Link>
-        <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-          Valider et soumettre →
+        <Link to={previousPath('recapitulatif')} className="step-back">← Précédent</Link>
+        <button type="submit" className="btn btn-primary" disabled={!canSubmit || submitting}>
+          {submitting ? 'Envoi...' : 'Valider et soumettre →'}
         </button>
       </div>
     </form>

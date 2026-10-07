@@ -1,6 +1,11 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import FormField from '../../components/FormField'
 import useStepForm from '../../hooks/useStepForm'
+import useDemande from '../../hooks/useDemande'
+import { useEnrollment } from '../../context/EnrollmentContext'
+import { useAuth } from '../../context/AuthContext'
+import { api } from '../../services/api'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE = /^\+?\d{8,15}$/
@@ -18,16 +23,58 @@ function validate(v) {
 }
 
 export default function AdresseStep() {
-  const { errors, field, onSubmit } = useStepForm({
+  const { nextPath } = useDemande()
+  const { data, update } = useEnrollment()
+  const { token } = useAuth()
+  const navigate = useNavigate()
+  const [submitError, setSubmitError] = useState('')
+  const { values, errors, field, setErrors, previousPath } = useStepForm({
     step: 'adresse',
     initial: { rue: '', ville: '', pays: 'Congo', telephone: '', email: '' },
     validate,
-    next: '/demande/profession',
   })
 
+  async function handleSubmit(e) {
+    e.preventDefault()
+
+    const found = validate(values)
+    setErrors(found)
+    const firstError = Object.keys(found)[0]
+    if (firstError) {
+      document.getElementById(firstError)?.focus()
+      return
+    }
+
+    const trackingNumber = data.application?.trackingNumber
+    if (!token || !trackingNumber) {
+      setSubmitError('Session ou numéro de dossier manquant. Reprenez la création du dossier.')
+      return
+    }
+
+    try {
+      setSubmitError('')
+      await api(`/applications/${encodeURIComponent(trackingNumber)}/address`, {
+        method: 'PATCH',
+        token,
+        body: {
+          residenceAddress: values.rue.trim(),
+          city: values.ville.trim(),
+          country: values.pays.trim(),
+          phoneNumber: values.telephone.trim(),
+          email: values.email.trim(),
+        },
+      })
+      update('adresse', values)
+      navigate(nextPath('adresse'))
+    } catch (error) {
+      setSubmitError(error.message)
+    }
+  }
+
   return (
-    <form className="step-form" onSubmit={onSubmit} noValidate>
+    <form className="step-form" onSubmit={handleSubmit} noValidate>
       <p>Indiquez où vous habitez et comment vous joindre.</p>
+      {submitError && <p role="alert">{submitError}</p>}
       <div className="field-grid">
         <FormField id="rue" label="Adresse de résidence" required error={errors.rue}>
           <input {...field('rue')} placeholder="Rue, numéro, quartier" autoComplete="street-address" />
@@ -46,7 +93,7 @@ export default function AdresseStep() {
         </FormField>
       </div>
       <div className="step-nav">
-        <Link to="/demande/famille" className="step-back">← Précédent</Link>
+        <Link to={previousPath} className="step-back">← Précédent</Link>
         <button type="submit" className="btn btn-primary">Suivant →</button>
       </div>
     </form>

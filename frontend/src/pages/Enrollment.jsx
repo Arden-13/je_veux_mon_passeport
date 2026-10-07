@@ -1,6 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom'
-import { STEPS } from '../utils/constants'
 import Stepper from '../components/Stepper'
+import useDemande from '../hooks/useDemande'
 import IdentiteStep from './steps/IdentiteStep'
 import FamilleStep from './steps/FamilleStep'
 import AdresseStep from './steps/AdresseStep'
@@ -20,8 +20,10 @@ const COMPONENTS = {
 
 export default function Enrollment() {
   const { etape } = useParams()
-  const step = STEPS.find((s) => s.id === etape)
-  if (!step) return <Navigate to="/demande/identite" replace />
+  const { steps, firstPath } = useDemande()
+  // Une étape qui n'existe pas pour ce type de demande renvoie à la première étape
+  const step = steps.find((s) => s.id === etape)
+  if (!step) return <Navigate to={firstPath} replace />
   const StepComponent = COMPONENTS[step.id]
   return (
     <div className="container page">

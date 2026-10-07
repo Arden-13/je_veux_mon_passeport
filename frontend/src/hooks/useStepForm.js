@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEnrollment } from '../context/EnrollmentContext'
+import { getFlow } from '../utils/demandeConfig'
 
-// Gère les valeurs, les erreurs et le passage à l'étape suivante d'un formulaire d'étape
-export default function useStepForm({ step, initial, validate, next }) {
+// Gère les valeurs, les erreurs et le passage à l'étape suivante d'un formulaire d'étape.
+// L'étape suivante et l'étape précédente dépendent du type de demande.
+export default function useStepForm({ step, initial, validate }) {
   const { data, update } = useEnrollment()
   const navigate = useNavigate()
+  const flow = getFlow(data)
   const [values, setValues] = useState({ ...initial, ...data[step] })
   const [errors, setErrors] = useState({})
 
@@ -32,8 +35,8 @@ export default function useStepForm({ step, initial, validate, next }) {
       return
     }
     update(step, values)
-    navigate(next)
+    navigate(flow.nextPath(step))
   }
 
-  return { values, errors, field, onSubmit }
+  return { values, setValues, errors, field, onChange, onSubmit, previousPath: flow.previousPath(step) }
 }

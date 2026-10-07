@@ -1,9 +1,14 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useEnrollment } from '../../context/EnrollmentContext'
 import FormField from '../../components/FormField'
+import useStepForm from '../../hooks/useStepForm'
+import useDemande from '../../hooks/useDemande'
+import { calculateAge } from '../../utils/demandeConfig'
+import { useState } from 'react'
+import { useEnrollment } from '../../context/EnrollmentContext'
+import { useAuth } from '../../context/AuthContext'
+import { api } from '../../services/api'
 
-const EMPTY = {
+const INITIAL = {
   nom: '',
   prenoms: '',
   dateNaissance: '',
@@ -11,54 +16,109 @@ const EMPTY = {
   sexe: '',
   nationalite: 'Congolaise',
   numeroCni: '',
+  numeroPasseport: '',
+  dateExpirationPasseport: '',
 }
 
-function validate(v) {
+function validate(v, type, config) {
   const e = {}
   if (!v.nom.trim()) e.nom = 'Le nom est obligatoire.'
   if (!v.prenoms.trim()) e.prenoms = 'Les prénoms sont obligatoires.'
   if (!v.dateNaissance) e.dateNaissance = 'La date de naissance est obligatoire.'
   else if (new Date(v.dateNaissance) > new Date()) e.dateNaissance = 'La date ne peut pas être dans le futur.'
+  else {
+    const age = calculateAge(v.dateNaissance)
+    if (type === 'adulte' && age < 18) e.dateNaissance = 'Pour un passeport adulte, le demandeur doit avoir 18 ans ou plus.'
+    if (type === 'mineur' && age >= 18) e.dateNaissance = 'Pour un passeport mineur, le demandeur doit avoir moins de 18 ans.'
+  }
   if (!v.lieuNaissance.trim()) e.lieuNaissance = 'Le lieu de naissance est obligatoire.'
   if (!v.sexe) e.sexe = 'Choisissez une option.'
-  if (!v.numeroCni.trim()) e.numeroCni = "Le numéro de la carte d'identité est obligatoire."
+  if (config.identite.cni && !v.numeroCni.trim()) e.numeroCni = "Le numéro de la carte d'identité est obligatoire."
+  if (config.identite.passeportActuel) {
+    if (!v.numeroPasseport.trim()) e.numeroPasseport = 'Le numéro du passeport actuel est obligatoire.'
+    if (!v.dateExpirationPasseport) e.dateExpirationPasseport = "La date d'expiration est obligatoire."
+  }
   return e
 }
 
 export default function IdentiteStep() {
-  const { data, update } = useEnrollment()
+  const { type, config, nextPath } = useDemande()
+  const { update } = useEnrollment()
+  const { token } = useAuth()
   const navigate = useNavigate()
-  const [values, setValues] = useState({ ...EMPTY, ...data.identite })
-  const [errors, setErrors] = useState({})
+  const [submitError, setSubmitError] = useState('')
 
-  const change = (e) => setValues((v) => ({ ...v, [e.target.name]: e.target.value }))
-
-  const field = (name) => ({
-    id: name,
-    name,
-    value: values[name],
-    onChange: change,
-    className: 'field-input',
-    'aria-invalid': errors[name] ? true : undefined,
-    'aria-describedby': errors[name] ? `${name}-error` : undefined,
+  const { values, errors, setErrors, field, onChange, previousPath } = useStepForm({
+    step: 'identite',
+    initial: INITIAL,
+    validate: (v) => validate(v, type, config),
   })
 
-  function submit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    const found = validate(values)
+
+    const found = validate(values, type, config)
     setErrors(found)
-    const first = Object.keys(found)[0]
-    if (first) {
-      document.getElementById(first)?.focus()
+
+    const firstError = Object.keys(found)[0]
+    if (firstError) {
+      document.getElementById(firstError)?.focus()
       return
     }
-    update('identite', values)
-    navigate('/demande/famille')
+
+    if (!token) {
+      setSubmitError('Vous devez être connecté pour créer une demande.')
+      return
+    }
+
+    if (!values.numeroCni.trim()) {
+      setSubmitError("Le backend exige actuellement un numéro de CNI pour créer le dossier.")
+      return
+    }
+
+    const [year, month, day] = values.dateNaissance.split('-')
+
+    try {
+      setSubmitError('')
+
+      const result = await api('/applications', {
+        method: 'POST',
+        token,
+        body: {
+          lastName: values.nom.trim(),
+          firstName: values.prenoms.trim(),
+          birthDate: `${day}/${month}/${year}`,
+          birthPlace: values.lieuNaissance.trim(),
+          gender: values.sexe,
+          nationality: values.nationalite,
+          nationalIdNumber: values.numeroCni.trim(),
+        },
+      })
+
+      const trackingNumber = result.data?.tracking_number
+      if (!trackingNumber) {
+        throw new Error('Le serveur n’a pas renvoyé le numéro de suivi.')
+      }
+
+      update('identite', values)
+      update('application', { trackingNumber })
+      navigate(nextPath('identite'))
+    } catch (error) {
+      setSubmitError(error.message)
+    }
   }
 
+  const intro =
+    type === 'mineur'
+      ? "Renseignez les informations de l'enfant, comme sur son acte de naissance."
+      : type === 'renouvellement'
+        ? "Renseignez vos informations d'identité et celles de votre passeport actuel."
+        : "Renseignez vos informations d'identité comme sur votre acte de naissance."
+
   return (
-    <form className="step-form" onSubmit={submit} noValidate>
-      <p>Renseignez vos informations d'identité comme sur votre acte de naissance.</p>
+    <form className="step-form" onSubmit={handleSubmit} noValidate>
+      <p>{intro}</p>
+      {submitError && <p role="alert">{submitError}</p>}
       <div className="field-grid">
         <FormField id="nom" label="Nom" required error={errors.nom}>
           <input {...field('nom')} placeholder="Ex. : MOUNGABIO" autoComplete="family-name" />
@@ -76,11 +136,11 @@ export default function IdentiteStep() {
           <legend>Sexe <span aria-hidden="true">*</span></legend>
           <div className="radios">
             <label>
-              <input type="radio" id="sexe" name="sexe" value="Masculin" checked={values.sexe === 'Masculin'} onChange={change} />
+              <input type="radio" id="sexe" name="sexe" value="Masculin" checked={values.sexe === 'Masculin'} onChange={onChange} />
               Masculin
             </label>
             <label>
-              <input type="radio" name="sexe" value="Féminin" checked={values.sexe === 'Féminin'} onChange={change} />
+              <input type="radio" name="sexe" value="Féminin" checked={values.sexe === 'Féminin'} onChange={onChange} />
               Féminin
             </label>
           </div>
@@ -92,12 +152,24 @@ export default function IdentiteStep() {
             <option>Autre</option>
           </select>
         </FormField>
-        <FormField id="numeroCni" label="Numéro de la carte d'identité" required error={errors.numeroCni}>
-          <input {...field('numeroCni')} />
-        </FormField>
+        {config.identite.cni && (
+          <FormField id="numeroCni" label="Numéro de la carte d'identité" required error={errors.numeroCni}>
+            <input {...field('numeroCni')} />
+          </FormField>
+        )}
+        {config.identite.passeportActuel && (
+          <>
+            <FormField id="numeroPasseport" label="Numéro du passeport actuel" required error={errors.numeroPasseport}>
+              <input {...field('numeroPasseport')} />
+            </FormField>
+            <FormField id="dateExpirationPasseport" label="Date d'expiration du passeport" required error={errors.dateExpirationPasseport}>
+              <input type="date" {...field('dateExpirationPasseport')} />
+            </FormField>
+          </>
+        )}
       </div>
       <div className="step-nav">
-        <Link to="/demande/type" className="step-back">← Précédent</Link>
+        <Link to={previousPath} className="step-back">← Précédent</Link>
         <button type="submit" className="btn btn-primary">Suivant →</button>
       </div>
     </form>
