@@ -1,3 +1,4 @@
+import { useEnrollment } from "../context/EnrollmentContext";
 import { useState } from "react";
 
 const trackingSteps = {
@@ -71,101 +72,105 @@ const trackingSteps = {
     ]
 };
 
-const dossier = {
-    numero: "PC-2026-000458",
-    date: "02 octobre 2026",
-    typeDemande: typeDemande,
-    type: typeDemande === "adulte"
-        ? "Passeport biométrique pour adulte"
-        : typeDemande === "mineur"
-            ? "Passeport biométrique pour mineur"
-            : "Renouvellement de passeport",
-    statut: "En cours de vérification",
-};
-
 export default function Tracking() {
 
-const steps = trackingSteps[dossier.typeDemande];
-const [currentStep, setCurrentStep] = useState(1);
+    // Récupération du type choisi dans EnrollmentContext
+    const { data } = useEnrollment();
 
-dossier.numero
-const copyReceiptNumber = () => {
-    navigator.clipboard.writeText(receiptNumber);
-    alert("Numéro de récépissé copié !");
-};
+    const typeDemande = data.type?.choix ?? "adulte";
 
-const downloadReceipt = () => {
-    const receiptContent = `
+    const dossier = {
+        numero: "PC-2026-000458",
+        date: "02 octobre 2026",
+        typeDemande: typeDemande,
+        type:
+            typeDemande === "adulte"
+                ? "Passeport biométrique pour adulte"
+                : typeDemande === "mineur"
+                    ? "Passeport biométrique pour mineur"
+                    : "Renouvellement de passeport",
+        statut: "En cours de vérification"
+    };
+
+    const steps = trackingSteps[typeDemande];
+
+    const [currentStep] = useState(1);
+
+    const copyReceiptNumber = () => {
+        navigator.clipboard.writeText(dossier.numero);
+        alert("Numéro de récépissé copié !");
+    };
+
+    const downloadReceipt = () => {
+        const receiptContent = `
 RÉCÉPISSÉ DE DEMANDE
 
 Numéro de récépissé : ${dossier.numero}
 Date de soumission : ${dossier.date}
 Type de demande : ${dossier.type}
 Statut : ${dossier.statut}
-    `;
+        `;
 
-    const blob = new Blob([receiptContent], {
-        type: "text/plain"
-    });
+        const blob = new Blob([receiptContent], {
+            type: "text/plain"
+        });
 
-    const url = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${dossier.numero}.txt`;
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `${dossier.numero}.txt`;
 
-    link.click();
+        link.click();
 
-    URL.revokeObjectURL(url);
-};
+        URL.revokeObjectURL(url);
+    };
 
-const goToTracking = () => {
-    document.getElementById("suivi").scrollIntoView({
-        behavior: "smooth"
-    });
-};
-    
-  return (
+    const goToTracking = () => {
+        document.getElementById("suivi").scrollIntoView({
+            behavior: "smooth"
+        });
+    };
+
+    return (
         <div className="container page">
 
             <h1>Confirmation et suivi du dossier</h1>
 
             <div className="tracking-page">
 
-                {/* Carte de confirmation */}
                 <section className="confirmation-card">
 
                     <div className="confirmation-header">
+
                         <span className="success-icon">✓</span>
 
                         <div>
-                            <h2>Votre demande a bien été enregistrée !</h2>
+                            <h2>
+                                Votre demande a bien été enregistrée !
+                            </h2>
 
                             <p>
                                 Nous vous remercions pour votre confiance.
                                 Votre dossier a été enregistré avec succès.
                             </p>
                         </div>
+
                     </div>
 
-
-                    {/* Numéro de récépissé */}
                     <div className="receipt">
 
                         <div>
                             <span>Numéro de récépissé</span>
-
                             <strong>{dossier.numero}</strong>
                         </div>
 
                         <button onClick={copyReceiptNumber}>
-                         Copier
+                            Copier
                         </button>
 
                     </div>
 
-
-                    {/* Informations du dossier */}
                     <div className="request-info">
 
                         <div className="info-item">
@@ -185,8 +190,6 @@ const goToTracking = () => {
 
                     </div>
 
-
-                    {/* Boutons */}
                     <div className="actions">
 
                         <button onClick={downloadReceipt}>
@@ -200,40 +203,58 @@ const goToTracking = () => {
                     </div>
 
                 </section>
+
                 <section className="tracking-card" id="suivi">
 
-                 <h2>Suivi de votre demande</h2>
+                    <h2>Suivi de votre demande</h2>
 
-                  <p>
-                   Vous pouvez suivre l'avancement de votre dossier
-                   à tout moment.
-                 </p>
+                    <p>
+                        Vous pouvez suivre l'avancement de votre dossier
+                        à tout moment.
+                    </p>
 
-                   <div className="timeline">
+                    <div className="timeline">
 
-                 {steps.map((step, index) => (
-                   <div className={`timeline-step ${
-                      index < currentStep ? "completed" : index === currentStep ? "active": "pending"
-                     }`}
-                     key={index} >
-                    <div className="step-circle">
+                        {steps.map((step, index) => (
 
-                     {index < currentStep  ? "✓" : index === currentStep ? "●" : "○"}
+                            <div
+                                className={`timeline-step ${
+                                    index < currentStep
+                                        ? "completed"
+                                        : index === currentStep
+                                            ? "active"
+                                            : "pending"
+                                }`}
+                                key={index}
+                            >
+
+                                <div className="step-circle">
+
+                                    {index < currentStep
+                                        ? "✓"
+                                        : index === currentStep
+                                            ? "●"
+                                            : "○"}
+
+                                </div>
+
+                                <div className="step-content">
+
+                                    <h3>{step.title}</h3>
+
+                                    <p>{step.description}</p>
+
+                                </div>
+
+                            </div>
+
+                        ))}
 
                     </div>
-
-                    <div className="step-content">
-                      <h3>{step.title}</h3>
-                      <p>{step.description}</p>
-                    </div>
-
-                    </div>
-                   ))}
-
-                   </div>
 
                 </section>
-              </div>
+
+            </div>
 
         </div>
     );
