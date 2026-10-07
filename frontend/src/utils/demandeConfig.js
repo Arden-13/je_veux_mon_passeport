@@ -9,12 +9,12 @@ export const TYPE_DEFAUT = 'adulte'
 // Les documents que l'on peut demander
 const DOC = {
   acteNaissance: { key: 'acteNaissance', title: 'Acte de naissance', hint: 'Document original ou copie légalisée', icon: '/assets/acte-de-naissance.png' },
-  cni: { key: 'cni', title: "Carte nationale d'identité", hint: 'Recto et verso (un seul fichier)', icon: '/assets/carte-didentite.png' },
+   cni: { key: 'cni', title: "Carte nationale d'identité", hint: 'Recto et verso (un seul fichier)', icon: '/assets/carte-didentite.png' },
   justificatifDomicile: { key: 'justificatifDomicile', title: 'Justificatif de domicile', hint: 'Facture de moins de 3 mois', icon: '/assets/justificatif.png' },
   photo: { key: 'photo', title: "Photo d'identité", hint: 'Récente (moins de 6 mois), fond uni', icon: '/assets/photo.png' },
   passeportActuel: { key: 'passeportActuel', title: 'Passeport actuel', hint: "Scan de la page des informations", icon: '/assets/passeport.png' },
-  cniPere: { key: 'cniPere', title: "Pièce d'identité du père", hint: 'Recto et verso (un seul fichier)', icon: '/assets/cni-pere.png' },
-  cniMere: { key: 'cniMere', title: "Pièce d'identité de la mère", hint: 'Recto et verso (un seul fichier)', icon: '/assets/cni-mere.png' },
+  cniPere: { key: 'cniPere', title: "Pièce d'identité du père", hint: 'Recto et verso (un seul fichier)', icon: '/assets/cni.png' },
+  cniMere: { key: 'cniMere', title: "Pièce d'identité de la mère", hint: 'Recto et verso (un seul fichier)', icon: '/assets/cni.png' },
 }
 
 export const REQUEST_CONFIG = {

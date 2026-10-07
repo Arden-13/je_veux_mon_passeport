@@ -42,7 +42,7 @@ export default function DocumentsStep() {
           const inputId = `doc-${key}`
           return (
             <li className="docs-row" key={key}>
-              <span className="docs-icon" aria-hidden="true">{icon}</span>
+              <span className="docs-icon" aria-hidden="true"><img src={icon} alt="" /></span>
               <div className="docs-info">
                 <strong>{title} <span aria-hidden="true">*</span></strong>
                 <span className="docs-hint">{hint}</span>
