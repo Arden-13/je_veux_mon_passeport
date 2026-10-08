@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useEnrollment } from '../../context/EnrollmentContext'
+import { useAuth } from '../../context/AuthContext'
 import useDemande from '../../hooks/useDemande'
 import { getMissing } from '../../utils/dossier'
+import { api } from '../../services/api'
 import './RecapitulatifStep.css'
 
 // Les lignes affichées dépendent du type de demande
@@ -52,19 +54,42 @@ function displayValue(key, raw, sectionData) {
 }
 
 export default function RecapitulatifStep() {
-  const { data } = useEnrollment()
+  const { data, update } = useEnrollment()
+  const { token } = useAuth()
   const navigate = useNavigate()
   const { config, steps, documents, previousPath } = useDemande()
   const [certified, setCertified] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const missing = getMissing(data)
   const canSubmit = missing.length === 0 && certified
   const sections = SECTIONS.filter((s) => steps.some((st) => st.id === s.step))
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    // TODO (tâche T15) : envoyer le dossier à l'API et récupérer la référence
-    navigate('/confirmation')
+
+    const trackingNumber = data.application?.trackingNumber
+    if (!token || !trackingNumber) {
+      setSubmitError('Session ou numéro de dossier manquant. Reprenez la création du dossier.')
+      return
+    }
+
+    try {
+      setSubmitting(true)
+      setSubmitError('')
+      await api(`/applications/${encodeURIComponent(trackingNumber)}/submit`, {
+        method: 'PATCH',
+        token,
+        body: { isCertified: true },
+      })
+      update('application', { status: 'submitted' })
+      navigate('/confirmation')
+    } catch (error) {
+      setSubmitError(error.message)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -73,6 +98,7 @@ export default function RecapitulatifStep() {
         Type de demande : <strong>{config.label}</strong> <Link to="/demande/type">Modifier</Link>
       </p>
       <p>Vérifiez vos informations avant de valider.</p>
+      {submitError && <p role="alert">{submitError}</p>}
 
       {missing.length > 0 && (
         <div className="recap-alert" role="alert">
@@ -138,8 +164,8 @@ export default function RecapitulatifStep() {
 
       <div className="step-nav">
         <Link to={previousPath('recapitulatif')} className="step-back">← Précédent</Link>
-        <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-          Valider et soumettre →
+        <button type="submit" className="btn btn-primary" disabled={!canSubmit || submitting}>
+          {submitting ? 'Envoi...' : 'Valider et soumettre →'}
         </button>
       </div>
     </form>
