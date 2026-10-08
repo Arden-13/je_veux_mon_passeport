@@ -38,5 +38,5 @@ export default function useStepForm({ step, initial, validate }) {
     navigate(flow.nextPath(step))
   }
 
-  return { values, setValues, errors, field, onChange, onSubmit, previousPath: flow.previousPath(step) }
+  return { values, setValues, errors, field, setErrors, onChange, onSubmit, previousPath: flow.previousPath(step) }
 }
