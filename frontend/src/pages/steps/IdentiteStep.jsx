@@ -1,12 +1,8 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import FormField from '../../components/FormField'
 import useStepForm from '../../hooks/useStepForm'
 import useDemande from '../../hooks/useDemande'
 import { calculateAge } from '../../utils/demandeConfig'
-import { useState } from 'react'
-import { useEnrollment } from '../../context/EnrollmentContext'
-import { useAuth } from '../../context/AuthContext'
-import { api } from '../../services/api'
 
 const INITIAL = {
   nom: '',
@@ -42,71 +38,12 @@ function validate(v, type, config) {
 }
 
 export default function IdentiteStep() {
-  const { type, config, nextPath } = useDemande()
-  const { update } = useEnrollment()
-  const { token } = useAuth()
-  const navigate = useNavigate()
-  const [submitError, setSubmitError] = useState('')
-
-  const { values, errors, setErrors, field, onChange, previousPath } = useStepForm({
+  const { type, config } = useDemande()
+  const { values, errors, field, onChange, onSubmit, previousPath } = useStepForm({
     step: 'identite',
     initial: INITIAL,
     validate: (v) => validate(v, type, config),
   })
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-
-    const found = validate(values, type, config)
-    setErrors(found)
-
-    const firstError = Object.keys(found)[0]
-    if (firstError) {
-      document.getElementById(firstError)?.focus()
-      return
-    }
-
-    if (!token) {
-      setSubmitError('Vous devez être connecté pour créer une demande.')
-      return
-    }
-
-    if (!values.numeroCni.trim()) {
-      setSubmitError("Le backend exige actuellement un numéro de CNI pour créer le dossier.")
-      return
-    }
-
-    const [year, month, day] = values.dateNaissance.split('-')
-
-    try {
-      setSubmitError('')
-
-      const result = await api('/applications', {
-        method: 'POST',
-        token,
-        body: {
-          lastName: values.nom.trim(),
-          firstName: values.prenoms.trim(),
-          birthDate: `${day}/${month}/${year}`,
-          birthPlace: values.lieuNaissance.trim(),
-          gender: values.sexe,
-          nationality: values.nationalite,
-          nationalIdNumber: values.numeroCni.trim(),
-        },
-      })
-
-      const trackingNumber = result.data?.tracking_number
-      if (!trackingNumber) {
-        throw new Error('Le serveur n’a pas renvoyé le numéro de suivi.')
-      }
-
-      update('identite', values)
-      update('application', { trackingNumber })
-      navigate(nextPath('identite'))
-    } catch (error) {
-      setSubmitError(error.message)
-    }
-  }
 
   const intro =
     type === 'mineur'
@@ -116,9 +53,8 @@ export default function IdentiteStep() {
         : "Renseignez vos informations d'identité comme sur votre acte de naissance."
 
   return (
-    <form className="step-form" onSubmit={handleSubmit} noValidate>
+    <form className="step-form" onSubmit={onSubmit} noValidate>
       <p>{intro}</p>
-      {submitError && <p role="alert">{submitError}</p>}
       <div className="field-grid">
         <FormField id="nom" label="Nom" required error={errors.nom}>
           <input {...field('nom')} placeholder="Ex. : MOUNGABIO" autoComplete="family-name" />
