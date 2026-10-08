@@ -131,7 +131,7 @@ export default function Home() {
       <section className="container home-invitation" aria-labelledby="home-invitation-title">
         <img
           className="home-invitation-image"
-          src="/assets/dowload.webp"
+          src="/assets/passeport-hero.png"
           alt="Illustration pour commencer votre demande de passeport"
         />
         <div className="home-invitation-copy">
