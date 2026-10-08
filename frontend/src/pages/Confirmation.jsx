@@ -11,15 +11,22 @@ export default function Confirmation() {
   const { config } = useDemande()
   const navigate = useNavigate()
   const [copied, setCopied] = useState(false)
-  const application = data.application
+  const application = data?.application
 
   if (!isSubmitted(application)) {
     const hasDraft = Boolean(application?.trackingNumber)
     return (
       <div className="container page">
         <h1>Confirmation de votre demande</h1>
-        <p>{hasDraft ? "Votre dossier n'a pas encore été envoyé." : "Aucune demande n'a été envoyée pour le moment."}</p>
-        <Link to={hasDraft ? '/demande/recapitulatif' : '/demande/type'} className="btn btn-primary">
+        <p>
+          {hasDraft
+            ? "Votre dossier n'a pas encore été envoyé."
+            : "Aucune demande n'a été envoyée pour le moment."}
+        </p>
+        <Link
+          to={hasDraft ? '/demande/recapitulatif' : '/demande/type'}
+          className="btn btn-primary"
+        >
           {hasDraft ? 'Revenir au récapitulatif' : 'Commencer une demande'}
         </Link>
       </div>
@@ -29,7 +36,7 @@ export default function Confirmation() {
   const { trackingNumber, submittedAt } = application
   const statusLabel = getStatusLabel(application.status)
   const submittedDate = formatLongDate(submittedAt) || '—'
-  const identity = data.identite
+  const identity = data?.identite
 
   async function copyReference() {
     try {
@@ -43,7 +50,9 @@ export default function Confirmation() {
 
   function downloadReceipt() {
     const lines = ['RÉCÉPISSÉ DE DEMANDE', '', `Numéro de récépissé : ${trackingNumber}`]
-    if (identity?.nom) lines.push(`Demandeur : ${identity.nom} ${identity.prenoms ?? ''}`.trim())
+    if (identity?.nom) {
+      lines.push(`Demandeur : ${identity.nom} ${identity.prenoms ?? ''}`.trim())
+    }
     lines.push(
       `Date de soumission : ${submittedDate}`,
       `Type de demande : ${config.label}`,
@@ -67,7 +76,10 @@ export default function Confirmation() {
             <span className="success-icon">✓</span>
             <div>
               <h2>Votre demande a bien été enregistrée !</h2>
-              <p>Nous vous remercions pour votre confiance. Votre dossier a été enregistré avec succès.</p>
+              <p>
+                Nous vous remercions pour votre confiance. Votre dossier a été enregistré avec
+                succès.
+              </p>
             </div>
           </div>
 
@@ -97,8 +109,12 @@ export default function Confirmation() {
           </div>
 
           <div className="actions">
-            <button type="button" onClick={downloadReceipt}>Télécharger le récépissé</button>
-            <button type="button" onClick={() => navigate('/suivi')}>Suivre mon dossier</button>
+            <button type="button" onClick={downloadReceipt}>
+              Télécharger le récépissé
+            </button>
+            <button type="button" onClick={() => navigate('/suivi')}>
+              Suivre mon dossier
+            </button>
           </div>
         </section>
       </div>
