@@ -83,7 +83,7 @@ export default function RecapitulatifStep() {
         token,
         body: { isCertified: true },
       })
-      update('application', { status: 'submitted' })
+      update('application', { status: 'submitted', submittedAt: new Date().toISOString() })
       navigate('/confirmation')
     } catch (error) {
       setSubmitError(error.message)
