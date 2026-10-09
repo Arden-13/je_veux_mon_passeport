@@ -1,8 +1,15 @@
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL,
-  process.env.JWT_SECRET   // nouvelle variable, la clé "Secret"
-);
+const supabaseUrl = process.env.SUPABASE_URL;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-module.exports = supabaseAdmin;
+if (!supabaseUrl || !serviceKey) {
+  throw new Error('SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY manquante dans le fichier .env');
+}
+
+// Client réservé au serveur : ne jamais l'utiliser dans le frontend
+const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+  auth: { persistSession: false },
+});
+
+export default supabaseAdmin;
