@@ -100,10 +100,17 @@ export default function RecapitulatifStep() {
 
   return (
     <form className="recap" onSubmit={submit}>
-      <p>
-        Type de demande : <strong>{config.label}</strong> <Link to="/demande/type">Modifier</Link>
-      </p>
-      <p>Vérifiez vos informations avant de valider.</p>
+      <div className="recap-summary">
+        <div>
+          <span className="recap-kicker">Résumé de votre demande</span>
+          <p>
+            Type de demande : <strong>{config.label}</strong>
+          </p>
+        </div>
+        <Link to="/demande/type" className="recap-edit-link">Modifier</Link>
+      </div>
+
+      <p className="recap-intro">Vérifiez vos informations avant de valider votre demande.</p>
 
       {missing.length > 0 && (
         <div className="recap-alert" role="alert">

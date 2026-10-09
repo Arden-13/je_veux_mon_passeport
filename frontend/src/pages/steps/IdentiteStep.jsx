@@ -54,7 +54,7 @@ export default function IdentiteStep() {
 
   return (
     <form className="step-form" onSubmit={onSubmit} noValidate>
-      <p>{intro}</p>
+      <p className="step-intro">{intro}</p>
       <div className="field-grid">
         <FormField id="nom" label="Nom" required error={errors.nom}>
           <input {...field('nom')} placeholder="Ex. : MOUNGABIO" autoComplete="family-name" />

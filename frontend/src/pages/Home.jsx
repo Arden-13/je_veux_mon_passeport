@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './authForms.css'
 
@@ -26,26 +25,43 @@ const documents = [
 ]
 
 export default function Home() {
-  const [currentStep, setCurrentStep] = useState(0)
-
   return (
     <>
       <section className="hero">
         <div className="container hero-inner">
-          <div>
-            <h1>Demande de passeport en ligne</h1>
+          <div className="hero-copy">
+            <p className="eyebrow">Prélèvement en ligne</p>
+            <h1>Votre passeport, sans file d&apos;attente</h1>
             <p>
-              Simplifiez vos démarches et gagnez du temps. Pré-enregistrez votre demande
-              de passeport depuis chez vous, en toute sécurité.
+              Préparez votre dossier depuis chez vous, gagnez du temps et profitez d&apos;un
+              parcours simple, sécurisé et transparent.
             </p>
-            <Link to="/connexion" className="btn btn-primary">Commencer mon pré-enrôlement →</Link>
-            <Link to="/informations" className="more">En savoir plus</Link>
+            <div className="hero-actions">
+              <Link to="/connexion" className="btn btn-primary">Commencer ma demande</Link>
+              <Link to="/informations" className="btn btn-secondary">Voir les pièces</Link>
+            </div>
+            <div className="hero-stats" aria-label="Indicateurs de service">
+              <div className="hero-stat">
+                <strong>10 min</strong>
+                <span>pour remplir</span>
+              </div>
+              <div className="hero-stat">
+                <strong>6</strong>
+                <span>étapes</span>
+              </div>
+              <div className="hero-stat">
+                <strong>100%</strong>
+                <span>en ligne</span>
+              </div>
+            </div>
           </div>
-          <img
-            className="hero-image"
-            src="/assets/passeport-hero.png"
-            alt="Passeport congolais sur le drapeau national, avec Brazzaville en arrière-plan"
-          />
+          <div className="hero-visual">
+            <img
+              className="hero-image"
+              src="/assets/passeport-hero.png"
+              alt="Passeport congolais sur le drapeau national, avec Brazzaville en arrière-plan"
+            />
+          </div>
         </div>
       </section>
 
@@ -61,52 +77,19 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="container home-section" aria-labelledby="home-steps-title">
-        <h2 id="home-steps-title" className="home-title">Comment ça marche ?</h2>
-        <p className="home-lead">Six étapes, de l'inscription au suivi de votre dossier.</p>
-        <div className="home-steps-viewport" aria-live="polite">
-          <ol className="home-steps" style={{ transform: `translateX(-${currentStep * 100}%)` }}>
+      <section className="home-process" aria-labelledby="home-steps-title">
+        <div className="container home-process-inner">
+          <h2 id="home-steps-title" className="home-title home-process-title">Comment ça marche</h2>
+          <p className="home-process-lead">Quatre étapes simples, environ dix minutes.</p>
+          <div className="home-process-grid" aria-live="polite">
             {steps.map(([title, text], i) => (
-              <li key={title}>
-                <span className="home-step-num">{i + 1}</span>
-                <strong>{title}</strong>
-                <span>{text}</span>
-              </li>
-            ))}
-          </ol>
-        </div>
-        <div className="home-steps-controls">
-          <button
-            className="home-step-arrow"
-            type="button"
-            aria-label="Étape précédente"
-            onClick={() => setCurrentStep((step) => Math.max(0, step - 1))}
-            disabled={currentStep === 0}
-          >
-            ←
-          </button>
-          <div className="home-step-dots" aria-label="Choisir une étape">
-            {steps.map(([title], i) => (
-              <button
-                key={title}
-                className={`home-step-dot${currentStep === i ? ' is-active' : ''}`}
-                type="button"
-                aria-label={`Afficher l’étape ${i + 1} : ${title}`}
-                aria-current={currentStep === i ? 'step' : undefined}
-                onClick={() => setCurrentStep(i)}
-              />
+              <article className="home-process-card" key={title}>
+                <span className="home-process-number">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
             ))}
           </div>
-          <span className="home-step-count">{currentStep + 1} / {steps.length}</span>
-          <button
-            className="home-step-arrow"
-            type="button"
-            aria-label="Étape suivante"
-            onClick={() => setCurrentStep((step) => Math.min(steps.length - 1, step + 1))}
-            disabled={currentStep === steps.length - 1}
-          >
-            →
-          </button>
         </div>
       </section>
 
@@ -128,23 +111,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container home-invitation" aria-labelledby="home-invitation-title">
-        <img
-          className="home-invitation-image"
-          src="/assets/passeport-hero.png"
-          alt="Illustration pour commencer votre demande de passeport"
-        />
-        <div className="home-invitation-copy">
-          <h2 id="home-invitation-title">À toi de jouer !</h2>
-        </div>
-      </section>
-
       <section className="home-cta">
         <div className="container">
-          <h2>Prêt à commencer ?</h2>
-          <p>Votre pré-enrôlement ne prend que quelques minutes.</p>
-          <Link to="/connexion" className="btn btn-primary">Commencer mon pré-enrôlement →</Link>
-          <Link to="/faq" className="more">Une question ? Consultez la FAQ</Link>
+          <h2>Prêt à préparer votre passeport ?</h2>
+          <p>Créez votre compte et commencez votre pré-enrôlement en quelques minutes.</p>
+          <Link to="/connexion" className="btn btn-secondary">Commencer ma demande</Link>
         </div>
       </section>
     </>

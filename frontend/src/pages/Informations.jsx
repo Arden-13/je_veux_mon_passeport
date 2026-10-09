@@ -56,7 +56,7 @@ function Informations() {
       </div>
 
       <div className="important-info">
-        <h3>📅 Date de présentation</h3>
+        <h3>Date de présentation</h3>
         <p>
           La date de présentation à la préfecture vous sera
           communiquée dès qu’elle sera officiellement connue.
@@ -64,9 +64,9 @@ function Informations() {
       </div>
 
       <div className="important-info">
-        <h3>💰 Somme à prévoir</h3>
+        <h3>Somme à prévoir</h3>
         <p>
-          Prévoyez une somme de <strong>10 000 FCFA</strong>,
+          Prévoyez une somme de <strong>50 000 FCFA</strong>,
           qui devra être apportée lors de votre présentation
           à la préfecture.
         </p>
