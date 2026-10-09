@@ -6,26 +6,20 @@ import useDemande from '../../hooks/useDemande'
 const SITUATIONS = ['Célibataire', 'Marié(e)', 'Divorcé(e)']
 const NOMBRES = Array.from({ length: 10 }, (_, i) => String(i + 1))
 
-function validate(v, rules) {
+function validate(v) {
   const e = {}
-  if (!v.nomPere.trim()) e.nomPere = 'Le nom du père est obligatoire.'
-  if (!v.nomMere.trim()) e.nomMere = 'Le nom de la mère est obligatoire.'
-  if (rules.situation && !v.situationMatrimoniale) e.situationMatrimoniale = 'Choisissez votre situation matrimoniale.'
-  if (rules.enfants) {
-    if (!v.aEnfants) e.aEnfants = 'Indiquez si vous avez des enfants.'
-    else if (v.aEnfants === 'Oui' && !v.nombreEnfants) e.nombreEnfants = "Indiquez le nombre d'enfants."
-  }
-  if (rules.consentement && !v.consentementParents) e.consentementParents = 'Le consentement des deux parents est obligatoire.'
+  if (!String(v.nomPere ?? '').trim()) e.nomPere = 'Le nom du père est obligatoire.'
+  if (!String(v.nomMere ?? '').trim()) e.nomMere = 'Le nom de la mère est obligatoire.'
   return e
 }
 
 export default function FamilleStep() {
   const { config } = useDemande()
   const rules = config.famille
-  const { values, setValues, errors, field, onChange, onSubmit, previousPath } = useStepForm({
+  const { values, setValues, errors, field, onChange, onSubmit, previousPath, submitError, submitting } = useStepForm({
     step: 'famille',
     initial: { nomPere: '', nomMere: '', situationMatrimoniale: '', aEnfants: '', nombreEnfants: '', consentementParents: '' },
-    validate: (v) => validate(v, rules),
+    validate,
   })
 
   // Si on choisit « Non », on efface le nombre d'enfants
@@ -124,9 +118,12 @@ export default function FamilleStep() {
           </div>
         )}
       </div>
+      {submitError && <p className="field-error" role="alert">{submitError}</p>}
       <div className="step-nav">
         <Link to={previousPath} className="step-back">← Précédent</Link>
-        <button type="submit" className="btn btn-primary">Suivant →</button>
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Enregistrement…' : 'Suivant →'}
+        </button>
       </div>
     </form>
   )
