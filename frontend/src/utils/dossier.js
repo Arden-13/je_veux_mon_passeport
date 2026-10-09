@@ -25,12 +25,6 @@ export function getMissing(data) {
   if (inFlow('famille')) {
     need('famille', 'nomPere', 'Nom du père')
     need('famille', 'nomMere', 'Nom de la mère')
-    if (config.famille.situation) need('famille', 'situationMatrimoniale', 'Situation matrimoniale')
-    if (config.famille.enfants) {
-      need('famille', 'aEnfants', 'Enfants (oui ou non)')
-      if (data.famille?.aEnfants === 'Oui') need('famille', 'nombreEnfants', "Nombre d'enfants")
-    }
-    if (config.famille.consentement) need('famille', 'consentementParents', 'Consentement des deux parents')
   }
 
   need('adresse', 'rue', 'Adresse de résidence')
