@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useEnrollment } from '../../context/EnrollmentContext'
+import { useAuth } from '../../context/AuthContext'
 import useDemande from '../../hooks/useDemande'
+import { saveApplicationDocuments } from '../../services/applicationApi'
 import { validateFile } from '../../utils/validators'
 import './DocumentsStep.css'
 
@@ -12,9 +14,13 @@ function formatSize(bytes) {
 
 export default function DocumentsStep() {
   const { data, update } = useEnrollment()
+  const { token } = useAuth()
+  const navigate = useNavigate()
   // La liste des pièces dépend du type de demande
   const { documents: required, previousPath, nextPath } = useDemande()
   const [errors, setErrors] = useState({})
+  const [submitError, setSubmitError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const documents = data.documents || {}
 
   function handleChange(key, event) {
@@ -31,8 +37,32 @@ export default function DocumentsStep() {
     setErrors((e) => ({ ...e, [key]: null }))
   }
 
+  async function handleSubmit(event) {
+    event.preventDefault()
+    const missing = required.filter(({ key }) => !documents[key]?.file)
+    if (missing.length) {
+      setSubmitError('Sélectionnez tous les documents obligatoires avant de continuer.')
+      return
+    }
+
+    setSubmitting(true)
+    setSubmitError('')
+    try {
+      await saveApplicationDocuments({
+        documents,
+        application: data.application,
+        token,
+      })
+      navigate(nextPath('documents'))
+    } catch (error) {
+      setSubmitError(error.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
-    <div className="docs">
+    <form className="docs" onSubmit={handleSubmit}>
       <p className="docs-intro">
         Téléchargez les documents requis au format PDF, JPG ou PNG (5 Mo maximum par fichier).
       </p>
@@ -42,7 +72,7 @@ export default function DocumentsStep() {
           const inputId = `doc-${key}`
           return (
             <li className="docs-row" key={key}>
-              <span className="docs-icon" aria-hidden="true">{icon}</span>
+              <span className="docs-icon" aria-hidden="true"><img src={icon} alt="" /></span>
               <div className="docs-info">
                 <strong>{title} <span aria-hidden="true">*</span></strong>
                 <span className="docs-hint">{hint}</span>
@@ -72,10 +102,13 @@ export default function DocumentsStep() {
       <p className="docs-tip">
         <strong>Conseil :</strong> assurez-vous que vos documents sont lisibles et bien orientés.
       </p>
+      {submitError && <p className="docs-error" role="alert">{submitError}</p>}
       <div className="docs-nav">
         <Link to={previousPath('documents')} className="docs-back">← Précédent</Link>
-        <Link to={nextPath('documents')} className="btn btn-primary">Suivant →</Link>
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Envoi des documents…' : 'Suivant →'}
+        </button>
       </div>
-    </div>
+    </form>
   )
 }

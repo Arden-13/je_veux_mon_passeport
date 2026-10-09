@@ -24,31 +24,44 @@ const documents = [
   ["Photo d'identité", 'Format 4x4, fond blanc'],
 ]
 
-const types = [
-  ['Adulte', 'Pour les personnes de 18 ans et plus.', 'Valable 10 ans'],
-  ['Mineur', 'Pour les enfants de moins de 18 ans.', 'Valable 5 ans'],
-  ['Renouvellement', 'Pour un passeport expiré ou bientôt expiré.', ''],
-]
-
 export default function Home() {
   return (
     <>
       <section className="hero">
         <div className="container hero-inner">
-          <div>
-            <h1>Demande de passeport en ligne</h1>
+          <div className="hero-copy">
+            <p className="eyebrow">Prélèvement en ligne</p>
+            <h1>Votre passeport, sans file d&apos;attente</h1>
             <p>
-              Simplifiez vos démarches et gagnez du temps. Pré-enregistrez votre demande
-              de passeport depuis chez vous, en toute sécurité.
+              Préparez votre dossier depuis chez vous, gagnez du temps et profitez d&apos;un
+              parcours simple, sécurisé et transparent.
             </p>
-            <Link to="/connexion" className="btn btn-primary">Commencer mon pré-enrôlement →</Link>
-            <Link to="/informations" className="more">En savoir plus</Link>
+            <div className="hero-actions">
+              <Link to="/connexion" className="btn btn-primary">Commencer ma demande</Link>
+              <Link to="/informations" className="btn btn-secondary">Voir les pièces</Link>
+            </div>
+            <div className="hero-stats" aria-label="Indicateurs de service">
+              <div className="hero-stat">
+                <strong>10 min</strong>
+                <span>pour remplir</span>
+              </div>
+              <div className="hero-stat">
+                <strong>6</strong>
+                <span>étapes</span>
+              </div>
+              <div className="hero-stat">
+                <strong>100%</strong>
+                <span>en ligne</span>
+              </div>
+            </div>
           </div>
-          <img
-            className="hero-image"
-            src="/assets/passeport-hero.png"
-            alt="Passeport congolais sur le drapeau national, avec Brazzaville en arrière-plan"
-          />
+          <div className="hero-visual">
+            <img
+              className="hero-image"
+              src="/assets/passeport-hero.png"
+              alt="Passeport congolais sur le drapeau national, avec Brazzaville en arrière-plan"
+            />
+          </div>
         </div>
       </section>
 
@@ -64,18 +77,20 @@ export default function Home() {
         ))}
       </section>
 
-      <section className="container home-section" aria-labelledby="home-steps-title">
-        <h2 id="home-steps-title" className="home-title">Comment ça marche ?</h2>
-        <p className="home-lead">Six étapes, de l'inscription au suivi de votre dossier.</p>
-        <ol className="home-steps">
-          {steps.map(([title, text], i) => (
-            <li key={title}>
-              <span className="home-step-num">{i + 1}</span>
-              <strong>{title}</strong>
-              <span>{text}</span>
-            </li>
-          ))}
-        </ol>
+      <section className="home-process" aria-labelledby="home-steps-title">
+        <div className="container home-process-inner">
+          <h2 id="home-steps-title" className="home-title home-process-title">Comment ça marche</h2>
+          <p className="home-process-lead">Quatre étapes simples, environ dix minutes.</p>
+          <div className="home-process-grid" aria-live="polite">
+            {steps.map(([title, text], i) => (
+              <article className="home-process-card" key={title}>
+                <span className="home-process-number">{String(i + 1).padStart(2, '0')}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
       </section>
 
       <section className="home-band" aria-labelledby="home-docs-title">
@@ -96,25 +111,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="container home-section" aria-labelledby="home-types-title">
-        <h2 id="home-types-title" className="home-title">Quelle demande pour quel besoin ?</h2>
-        <div className="home-types">
-          {types.map(([title, text, validity]) => (
-            <div className="home-type" key={title}>
-              <strong>{title}</strong>
-              <span>{text}</span>
-              {validity && <em>{validity}</em>}
-            </div>
-          ))}
-        </div>
-      </section>
-
       <section className="home-cta">
         <div className="container">
-          <h2>Prêt à commencer ?</h2>
-          <p>Votre pré-enrôlement ne prend que quelques minutes.</p>
-          <Link to="/connexion" className="btn btn-primary">Commencer mon pré-enrôlement →</Link>
-          <Link to="/faq" className="more">Une question ? Consultez la FAQ</Link>
+          <h2>Prêt à préparer votre passeport ?</h2>
+          <p>Créez votre compte et commencez votre pré-enrôlement en quelques minutes.</p>
+          <Link to="/connexion" className="btn btn-secondary">Commencer ma demande</Link>
         </div>
       </section>
     </>

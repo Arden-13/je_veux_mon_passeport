@@ -20,8 +20,8 @@ export default function Footer() {
         <div>
           <h4>Nous contacter</h4>
           <ul>
-            <li>+242 06 123 45 67</li>
-            <li>contact@passeportcongo.cg</li>
+            <li>+242 XX XXX XX XX</li>
+            <li>contact@exemple.cg</li>
             <li>Brazzaville, Congo</li>
           </ul>
         </div>
@@ -36,7 +36,7 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <div className="container">
-          <span> Passeport Congo</span>
+          <span>© 2026 Je veux mon passeport. Projet pédagogique, non officiel.</span>
           <span>Mentions légales | Politique de confidentialité</span>
         </div>
       </div>

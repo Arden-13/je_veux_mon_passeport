@@ -6,7 +6,7 @@
 "use strict"
 
 import Application from '../models/Application.js';
-import supabase from '../config/supabaseClient.js'; // Ajout du client Supabase
+import supabase from '../config/supabaseAdmin.js'; // Client serveur (envoi des documents)
 
 /**
  * Étapes 1 :

@@ -73,13 +73,16 @@ export default function Header() {
               {label}
             </NavLink>
           ))}
-          {!loading && user && (
+          {!loading && !user ? (
+            <Link to="/connexion" className="header-login" onClick={closeMenu}>
+              Se connecter
+            </Link>
+          ) : !loading && user ? (
             <button type="button" className="nav-signout" onClick={handleSignOut}>
               Se déconnecter
             </button>
-          )}
+          ) : null}
           {authError && <span className="nav-auth-error" role="alert">{authError}</span>}
-          <span className="lang"><span className="on">FR</span> | EN</span>
         </nav>
       </div>
     </header>

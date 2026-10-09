@@ -5,7 +5,7 @@ import { EnrollmentProvider } from './context/EnrollmentContext'
 import { useAuth } from './context/AuthContext'
 import Home from './pages/Home'
 import Informations from './pages/Informations'
-import Centres from './pages/Centres'
+import Centres from "./pages/Centres" 
 import Faq from './pages/Faq'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'

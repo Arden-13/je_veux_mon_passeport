@@ -31,9 +31,9 @@ const { data, update } = useEnrollment()
 const [selected, setSelected] = useState(data.type?.choix ?? 'adulte')
 
   const handleContinue = () => {
-    // TODO: enregistrer `selected` dans EnrollmentContext (à brancher quand on aura vu le contexte)
+    if (selected !== 'adulte') return
     update('type', { choix: selected })
-    navigate('/demande/identite') // à vérifier : nom exact de la première étape dans Enrollment.jsx
+    navigate('/demande/identite')
   }
 
   return (
@@ -62,11 +62,13 @@ const [selected, setSelected] = useState(data.type?.choix ?? 'adulte')
 
       <div className="rt-info">
         <strong>Bon à savoir</strong>
-        <p>Le passeport biométrique est valable 10 ans pour les adultes et 5 ans pour les mineurs.</p>
+        {selected === 'adulte'
+          ? <p>Le passeport biométrique est valable 10 ans pour les adultes et 5 ans pour les mineurs.</p>
+          : <p role="alert">Les routes API actuellement disponibles prennent en charge le parcours adulte uniquement. Les demandes mineur et renouvellement ne peuvent pas encore être enregistrées.</p>}
       </div>
 
       <div className="rt-actions">
-        <button type="button" className="btn btn-primary" onClick={handleContinue}>
+        <button type="button" className="btn btn-primary" onClick={handleContinue} disabled={selected !== 'adulte'}>
           Continuer →
         </button>
       </div>
