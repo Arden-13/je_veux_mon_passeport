@@ -96,8 +96,6 @@ export default function RecapitulatifStep() {
     } finally {
       setSubmitting(false)
     }
-    // TODO (tâche T15) : envoyer le dossier à l'API et récupérer la référence
-    navigate('/confirmation')
   }
 
   return (
@@ -168,11 +166,12 @@ export default function RecapitulatifStep() {
           Complétez le dossier et cochez la case pour pouvoir valider.
         </p>
       )}
+      {submitError && <div className="recap-alert" role="alert">{submitError}</div>}
 
       <div className="step-nav">
         <Link to={previousPath('recapitulatif')} className="step-back">← Précédent</Link>
-        <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-          Valider et soumettre →
+        <button type="submit" className="btn btn-primary" disabled={!canSubmit || submitting}>
+          {submitting ? 'Envoi…' : 'Valider et soumettre →'}
         </button>
       </div>
     </form>

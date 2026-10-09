@@ -39,7 +39,7 @@ function validate(v, type, config) {
 
 export default function IdentiteStep() {
   const { type, config } = useDemande()
-  const { values, errors, field, onChange, onSubmit, previousPath } = useStepForm({
+  const { values, errors, field, onChange, onSubmit, previousPath, submitError, submitting } = useStepForm({
     step: 'identite',
     initial: INITIAL,
     validate: (v) => validate(v, type, config),
@@ -104,9 +104,12 @@ export default function IdentiteStep() {
           </>
         )}
       </div>
+      {submitError && <p className="field-error" role="alert">{submitError}</p>}
       <div className="step-nav">
         <Link to={previousPath} className="step-back">← Précédent</Link>
-        <button type="submit" className="btn btn-primary">Suivant →</button>
+        <button type="submit" className="btn btn-primary" disabled={submitting}>
+          {submitting ? 'Enregistrement…' : 'Suivant →'}
+        </button>
       </div>
     </form>
   )
